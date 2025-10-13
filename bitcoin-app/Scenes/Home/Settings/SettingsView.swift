@@ -1,175 +1,50 @@
-//
-//  SettingsView.swift
-//  bitcoin-app
-//
-//  Created by Felipe Augusto Silva on 12/10/25.
-//
-
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var notificationsEnabled = true
-    @State private var biometricAuthEnabled = true
-    @State private var darkModeEnabled = false
-    @State private var selectedCurrency = 0
+    @State private var xpubKey: String = ""
+    @State private var enableNotifications: Bool = true
+    @State private var biometricAuthEnabled: Bool = true
+    @State private var selectedCurrency: Int = 0 // 0 for USD, 1 for BRL, etc.
     
     var body: some View {
         NavigationView {
-            List {
-                
-                // Seção de Preferências
-                Section(header: Text("Preferências")) {
-                    HStack {
-                        Image(systemName: "bell.fill")
-                            .foregroundColor(.orange)
-                            .frame(width: 28)
-                        Toggle("Notificações", isOn: $notificationsEnabled)
-                    }
+            Form {
+                Section(header: Text("Configurações da Carteira")) {
+                    TextField("Chave Pública Estendida (xpub)", text: $xpubKey)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
                     
-                    HStack {
-                        Image(systemName: "moon.fill")
-                            .foregroundColor(.indigo)
-                            .frame(width: 28)
-                        Toggle("Modo Escuro", isOn: $darkModeEnabled)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .foregroundColor(.green)
-                            .frame(width: 28)
-                        Picker("Moeda", selection: $selectedCurrency) {
-                            Text("BRL (R$)").tag(0)
-                            Text("USD ($)").tag(1)
-                            Text("EUR (€)").tag(2)
-                        }
+                    Picker("Moeda de Exibição", selection: $selectedCurrency) {
+                        Text("USD ($)").tag(0)
+                        Text("BRL (R$)").tag(1)
+                        Text("EUR (€)").tag(2)
                     }
                 }
                 
-                // Seção de Segurança
-                Section(header: Text("Segurança e Privacidade")) {
-                    HStack {
-                        Image(systemName: "faceid")
-                            .foregroundColor(.blue)
-                            .frame(width: 28)
-                        Toggle("Autenticação Biométrica", isOn: $biometricAuthEnabled)
+                Section(header: Text("Segurança")) {
+                    Toggle(isOn: $biometricAuthEnabled) {
+                        Text("Autenticação Biométrica")
                     }
-                    
                     NavigationLink(destination: Text("Alterar Senha")) {
-                        HStack {
-                            Image(systemName: "lock.fill")
-                                .foregroundColor(.red)
-                                .frame(width: 28)
-                            Text("Alterar Senha")
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Privacidade")) {
-                        HStack {
-                            Image(systemName: "hand.raised.fill")
-                                .foregroundColor(.purple)
-                                .frame(width: 28)
-                            Text("Privacidade")
-                        }
+                        Text("Alterar Senha")
                     }
                 }
                 
-                // Seção de Contas Conectadas
-                Section(header: Text("Contas Conectadas")) {
-                    NavigationLink(destination: Text("Gerenciar Contas")) {
-                        HStack {
-                            Image(systemName: "building.columns.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Contas Bancárias")
-                                    .font(.body)
-                                Text("3 contas conectadas")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Gerenciar Cartões")) {
-                        HStack {
-                            Image(systemName: "creditcard.fill")
-                                .foregroundColor(.orange)
-                                .frame(width: 28)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Cartões de Crédito")
-                                    .font(.body)
-                                Text("2 cartões conectados")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
+                Section(header: Text("Notificações")) {
+                    Toggle(isOn: $enableNotifications) {
+                        Text("Ativar Notificações")
                     }
                 }
                 
-                // Seção de Dados
-                Section(header: Text("Dados")) {
-                    NavigationLink(destination: Text("Exportar Dados")) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.up.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            Text("Exportar Dados")
-                        }
+                Section(header: Text("Geral")) {
+                    NavigationLink(destination: Text("Sobre o Aplicativo")) {
+                        Text("Sobre o Aplicativo")
                     }
-                    
-                    NavigationLink(destination: Text("Importar Dados")) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down.fill")
-                                .foregroundColor(.green)
-                                .frame(width: 28)
-                            Text("Importar Dados")
-                        }
-                    }
-                    
-                    Button(action: {
-                        // Ação para fazer backup
-                    }) {
-                        HStack {
-                            Image(systemName: "icloud.and.arrow.up.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            Text("Fazer Backup")
-                                .foregroundColor(.primary)
-                        }
+                    NavigationLink(destination: Text("Termos de Serviço")) {
+                        Text("Termos de Serviço")
                     }
                 }
                 
-                // Seção de Suporte
-                Section(header: Text("Suporte")) {
-                    NavigationLink(destination: Text("Central de Ajuda")) {
-                        HStack {
-                            Image(systemName: "questionmark.circle.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            Text("Central de Ajuda")
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Contato")) {
-                        HStack {
-                            Image(systemName: "envelope.fill")
-                                .foregroundColor(.green)
-                                .frame(width: 28)
-                            Text("Entrar em Contato")
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Sobre")) {
-                        HStack {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.gray)
-                                .frame(width: 28)
-                            Text("Sobre o App")
-                        }
-                    }
-                }
-                
-                // Seção de Conta
                 Section {
                     Button(action: {
                         // Ação para sair
@@ -183,25 +58,12 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
-                // Versão do App
-                Section {
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 4) {
-                            Text("Finanças Pessoais")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text("Versão 1.0.0")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                }
             }
             .navigationTitle("Configurações")
         }
     }
+}
+
+#Preview {
+    SettingsView()
 }
