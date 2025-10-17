@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct bitcoin_appApp: App {
+    @StateObject var languageManager = LocalizationManager.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(languageManager)
+                .environment(\.locale, languageManager.language.locale)
         }
     }
 }

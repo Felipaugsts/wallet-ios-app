@@ -137,6 +137,9 @@
 			);
 			name = "bitcoin-app";
 			packageProductDependencies = (
+				B30C1A852E9D380B00151D50 /* SwiftUICharts */,
+				B38706C72EA2B384004A3B6B /* DSKit */,
+				B38706CA2EA2B3E9004A3B6B /* DSKit */,
 			);
 			productName = "bitcoin-app";
 			productReference = B30C19FA2E9AA90D00151D50 /* bitcoin-app.app */;
@@ -221,6 +224,8 @@
 			);
 			mainGroup = B30C19F12E9AA90D00151D50;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B30C19FB2E9AA90D00151D50 /* Products */;
 			projectDirPath = "";
@@ -423,6 +428,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5QYSPM6K5Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "bitcoin-app/Info.plist";
@@ -451,6 +457,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5QYSPM6K5Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "bitcoin-app/Info.plist";
@@ -580,6 +587,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B30C1A852E9D380B00151D50 /* SwiftUICharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SwiftUICharts;
+		};
+		B38706C72EA2B384004A3B6B /* DSKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DSKit;
+		};
+		B38706CA2EA2B3E9004A3B6B /* DSKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DSKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B30C19F22E9AA90D00151D50 /* Project object */;
 }

@@ -1,2 +1,7 @@
 "greeting" = "Hello";
 "changeLanguage" = "Change Language";
+"transactions" = "Transactions";
+"changeLanguage" = "Change language";
+"language" = "Language";
+"english" = "English";
+"portuguese" = "Portuguese";

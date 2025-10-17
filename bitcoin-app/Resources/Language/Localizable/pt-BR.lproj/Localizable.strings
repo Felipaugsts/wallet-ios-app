@@ -1,2 +1,7 @@
 "greeting" = "Olá";
 "changeLanguage" = "Mudar Idioma";
+"transactions" = "Transações";
+"changeLanguage" = "Alterar Idioma";
+"language" = "Idioma";
+"english" = "Inglês";
+"portuguese" = "Português";

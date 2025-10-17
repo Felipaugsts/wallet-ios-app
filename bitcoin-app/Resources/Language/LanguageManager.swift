@@ -6,26 +6,44 @@
 //
 
 import SwiftUI
-import Combine
 
-class LanguageManager: ObservableObject {
-    @Published var currentLanguage: Language = .english
+@Observable
+class LocalizationManager: ObservableObject {
+    // MARK: - Variables
+    static let shared = LocalizationManager()
     
-    enum Language {
-        case portuguese
-        case english
+    var language: SelectedLanguage
+    
+
+    init() {
+        language = .english
     }
+
+    // MARK: - Methods
+    func saveLanguage(_ language: SelectedLanguage) {
+        self.language = language
+    }
+}
+
+public enum SelectedLanguage: String {
+    case english = "en"
+    case portuguese = "pt"
     
-    var localizedString: String {
-        switch currentLanguage {
-        case .portuguese:
-            return NSLocalizedString("greeting", comment: "")
+    var locale: Locale {
+        switch self {
         case .english:
-            return NSLocalizedString("greeting", comment: "")
+            return Locale(identifier: "en")
+        case .portuguese:
+            return Locale(identifier: "pt")
         }
     }
-    
-    func toggleLanguage() {
-        currentLanguage = currentLanguage == .portuguese ? .english : .portuguese
+}
+
+extension String {
+    var localized: String {
+        let currentLanguage = LocalizationManager.shared.language.rawValue
+        let path = Bundle.main.path(forResource: currentLanguage, ofType: "lproj") ?? ""
+        let bundle = Bundle(path: path) ?? .main
+        return NSLocalizedString(self, tableName: nil, bundle: bundle, value: "", comment: "")
     }
 }
