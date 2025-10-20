@@ -60,7 +60,7 @@ struct ChartView: View {
                 VStack(alignment: .leading) {
                     Text("Total worth")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(ColorPalette.secondary100)
                         .bold()
                     
                     Text(currentValue)
@@ -77,7 +77,7 @@ struct ChartView: View {
         .padding()
         .background {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.white)
+                .fill(ColorPalette.backgroundView)
         }
         .chartXSelection(value: $selectedItem)
         .frame(height: 300)
