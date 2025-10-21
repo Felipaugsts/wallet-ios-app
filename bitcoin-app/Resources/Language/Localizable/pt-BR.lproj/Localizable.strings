@@ -5,3 +5,16 @@
 "language" = "Idioma";
 "english" = "Inglês";
 "portuguese" = "Português";
+"configuration" = "Configuracoes";
+
+"notification" = "Notificações";
+"theme" = "Modo Escuro";
+"language" = "Idioma";
+"biometric_auth" = "Autenticação Biométrica";
+"change_password" = "Alterar Senha";
+"privacy" = "Privacidade";
+"bank_accounts" = "Contas Bancárias";
+"credit_cards" = "Cartões de Crédito";
+"help_center" = "Central de Ajuda";
+"contact" = "Entrar em Contato";
+"about_app" = "Sobre o App";

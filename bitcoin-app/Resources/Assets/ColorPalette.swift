@@ -16,5 +16,7 @@ struct ColorPalette {
     static var orange = Color("orange")
     static var indigo = Color("indigo")
     static var green = Color("green")
+    static var blue = Color("blue")
+    static var red = Color("red")
     
 }

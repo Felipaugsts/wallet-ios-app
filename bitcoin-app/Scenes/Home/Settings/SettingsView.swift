@@ -8,178 +8,69 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var notificationsEnabled = true
-    @State private var biometricAuthEnabled = true
-    @State private var darkModeEnabled = false
-    @State private var selectedLanguage: Int = LocalizationManager.shared.language == .english ? 1 : 0
-
+    
+    @StateObject private var viewModel = SettingsViewModel()
+    
+    
     var body: some View {
+        
+        VStack {
+            switch viewModel.viewState {
+            case .loading:
+                Text("Loading")
+                
+            case .failure:
+                Text("Failure")
+                
+            case .loaded(let sections):
+                loadedValues(sections: sections)
+            }
+        }
+        .onAppear {
+            viewModel.fetchData()
+        }
+    }
+    
+    @ViewBuilder
+    func loadedValues(sections: [SectionModel]) -> some View {
         NavigationView {
             List {
-                
-                // Seção de Preferências
-                Section(header: Text("Preferências")) {
-                    HStack {
-                        Image(systemName: "bell.fill")
-                            .foregroundColor(.orange)
-                            .frame(width: 28)
-                        Toggle("Notificações", isOn: $notificationsEnabled)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "moon.fill")
-                            .foregroundColor(.indigo)
-                            .frame(width: 28)
-                        Toggle("Modo Escuro", isOn: $darkModeEnabled)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .foregroundColor(.green)
-                            .frame(width: 28)
-                        Picker("language".localized, selection: $selectedLanguage) {
-                            Text("portuguese".localized).tag(0)
-                            Text("english".localized).tag(1)
-                        }
-                    }
-                    .onChange(of: selectedLanguage) { newValue in
-                             print("Selected language index: \(newValue)")
-                             // Atualize a configuração de linguagem aqui, se necessário
-                             if newValue == 0 {
-                                 // Ação para português
-                                 LocalizationManager.shared.language = .portuguese
-                             } else {
-                                 // Ação para inglês
-                                 LocalizationManager.shared.language = .english
-                             }
-                         }
-                }
-                
-                // Seção de Segurança
-                Section(header: Text("Segurança e Privacidade")) {
-                    HStack {
-                        Image(systemName: "faceid")
-                            .foregroundColor(.blue)
-                            .frame(width: 28)
-                        Toggle("Autenticação Biométrica", isOn: $biometricAuthEnabled)
-                    }
-                    
-                    NavigationLink(destination: Text("Alterar Senha")) {
-                        HStack {
-                            Image(systemName: "lock.fill")
-                                .foregroundColor(.red)
-                                .frame(width: 28)
-                            Text("Alterar Senha")
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Privacidade")) {
-                        HStack {
-                            Image(systemName: "hand.raised.fill")
-                                .foregroundColor(.purple)
-                                .frame(width: 28)
-                            Text("Privacidade")
-                        }
-                    }
-                }
-                
-                // Seção de Contas Conectadas
-                Section(header: Text("Contas Conectadas")) {
-                    NavigationLink(destination: Text("Gerenciar Contas")) {
-                        HStack {
-                            Image(systemName: "building.columns.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Contas Bancárias")
-                                    .font(.body)
-                                Text("3 contas conectadas")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Gerenciar Cartões")) {
-                        HStack {
-                            Image(systemName: "creditcard.fill")
-                                .foregroundColor(.orange)
-                                .frame(width: 28)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Cartões de Crédito")
-                                    .font(.body)
-                                Text("2 cartões conectados")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                ForEach(sections, id: \.sectionTitle) { section in
+                    Section(header: Text(section.sectionTitle)) {
+                        ForEach(section.sectionOptions, id: \.id) { item in // Usar 'id' para o ForEach
+                            HStack {
+                                Image(systemName: item.icon)
+                                    .foregroundColor(Color(item.color))
+                                    .frame(width: 28)
+                                
+                                switch item.type {
+                                case "toggle":
+                                    Toggle("\(item.title)".localized, isOn: viewModel.setBinding(for: item.id))
+                                        .disabled(!item.enabled)
+                                case "picker":
+                                    if let pickerOptions = item.options {
+                                        Picker("\(item.title)".localized, selection: viewModel.pickerBinding(for: item.id)) {
+                                            ForEach(pickerOptions, id: \.tag) { option in
+                                                Text(option.title).tag(option.tag)
+                                            }
+                                        }
+                                        .disabled(!item.enabled)
+                                    }
+                                    
+                                case "navigation":
+                                    NavigationLink(destination: Text("\(item.title)".localized)) { // Destino do NavigationLink
+                                        Text(item.title)
+                                    }.disabled(!item.enabled)
+                                    
+                                default:
+                                    EmptyView() // Para qualquer tipo desconhecido
+                                }
                             }
                         }
                     }
                 }
                 
-                // Seção de Dados
-                Section(header: Text("Dados")) {
-                    NavigationLink(destination: Text("Exportar Dados")) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.up.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            Text("Exportar Dados")
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Importar Dados")) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down.fill")
-                                .foregroundColor(.green)
-                                .frame(width: 28)
-                            Text("Importar Dados")
-                        }
-                    }
-                    
-                    Button(action: {
-                        // Ação para fazer backup
-                    }) {
-                        HStack {
-                            Image(systemName: "icloud.and.arrow.up.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            Text("Fazer Backup")
-                                .foregroundColor(.primary)
-                        }
-                    }
-                }
-                
-                // Seção de Suporte
-                Section(header: Text("Suporte")) {
-                    NavigationLink(destination: Text("Central de Ajuda")) {
-                        HStack {
-                            Image(systemName: "questionmark.circle.fill")
-                                .foregroundColor(.blue)
-                                .frame(width: 28)
-                            Text("Central de Ajuda")
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Contato")) {
-                        HStack {
-                            Image(systemName: "envelope.fill")
-                                .foregroundColor(.green)
-                                .frame(width: 28)
-                            Text("Entrar em Contato")
-                        }
-                    }
-                    
-                    NavigationLink(destination: Text("Sobre")) {
-                        HStack {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.gray)
-                                .frame(width: 28)
-                            Text("Sobre o App")
-                        }
-                    }
-                }
-                
-                // Seção de Conta
+                // Seção para Sair
                 Section {
                     Button(action: {
                         // Ação para sair
@@ -194,7 +85,7 @@ struct SettingsView: View {
                     }
                 }
                 
-                // Versão do App
+                // Seção para Versão do App
                 Section {
                     HStack {
                         Spacer()
@@ -211,7 +102,12 @@ struct SettingsView: View {
                     .padding(.vertical, 8)
                 }
             }
-            .navigationTitle("Configurações")
+            .navigationTitle("configuration".localized)
+        }
+        .refreshable {
+            viewModel.fetchData()
         }
     }
 }
+
+
