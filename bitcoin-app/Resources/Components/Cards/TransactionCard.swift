@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct Transaction: Identifiable {
-    var id = UUID()
+    var id = UUID().uuidString
     var name: String
     var type: String
     var value: String
     var image: String
+    var dayChangePorcentage: String
 }
 
 struct TransactionCard: View {
@@ -45,12 +46,6 @@ struct TransactionCard: View {
         .background {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(ColorPalette.backgroundView)
-                .shadow(
-                    color: .gray.opacity(0.3),
-                    radius: 2,
-                    x: 1,
-                    y: 1
-                )
         }
     }
 }

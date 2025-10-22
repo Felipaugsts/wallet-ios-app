@@ -56,15 +56,9 @@ class SettingsViewModel: ObservableObject {
     }
     
     func changeTheme(toDarkMode: Bool) {
-        // Verifica se há uma janela disponível e altera o estilo de interface
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
-            window.overrideUserInterfaceStyle = toDarkMode ? .dark : .light
-        }
-
-        // Atualiza a preferência no UserDefaults
-        UserDefaultsUtils.shared.setDarkMode(enable: toDarkMode)
+        ThemeManager.shared.updateTheme(toDarkMode ? .dark : .light)
     }
+    
     func changeLanguage(to index: Int) {
         let newLanguage: SelectedLanguage
         
@@ -91,6 +85,14 @@ class SettingsViewModel: ObservableObject {
           "icon": "bell.fill",
           "color": "orange",
           "enabled": false,
+          "type": "toggle"
+        },
+        {
+          "id": "crypto",
+          "title": "crypto",
+          "icon": "bitcoinsign.bank.building.fill",
+          "color": "yellow",
+          "enabled": true,
           "type": "toggle"
         },
         {
@@ -179,7 +181,7 @@ class SettingsViewModel: ObservableObject {
     },
     {
       "sectionTitle": "support",
-      "sectionEnabled": true,
+      "sectionEnabled": false,
       "sectionOptions": [
         {
           "id": "help_center",

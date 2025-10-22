@@ -5,7 +5,7 @@
 "language" = "Language";
 "english" = "English";
 "portuguese" = "Portuguese";
-"configuration" = "Configurations";
+"settingsTitle" = "Configurations";
 
 // English (en)
 "notification" = "Notification";
@@ -25,3 +25,9 @@
 "seven_days" = "7 Days";
 "one_month" = "1 Month";
 "one_year" = "7 Year";
+"dashboardTitle" = "Portfolio";
+"crypto" = "Crypto Wallet";
+
+"wallet" = "Wallet";
+"watch_list" = "Watch list";
+"trending" = "Trending";

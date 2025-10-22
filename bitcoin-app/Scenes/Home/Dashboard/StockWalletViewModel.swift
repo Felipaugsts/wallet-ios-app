@@ -13,6 +13,8 @@ class StockWalletViewModel: ObservableObject {
     @Published var viewState: ViewState = .loading
     @Published var filteredData: [SiteView] = []
     @Published var transactions: [Transaction] = []
+    @Published var filteredList: [Transaction] = []
+    @Published var dashboardListSelected = "wallet"
     
     private var loadedData: [SiteView] = []
     
@@ -27,6 +29,7 @@ class StockWalletViewModel: ObservableObject {
             Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo"),
             Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo"),
         ]
+        filteredList = transactions
         loadedData = sampleData
         filterData(by: "seven_days")
         
@@ -43,6 +46,18 @@ class StockWalletViewModel: ObservableObject {
         }
         
         self.filteredData = filteredData
+    }
+    
+    func filterList(by value: String) {
+        if value == "wallet" {
+            filteredList = transactions
+        } else {
+            filteredList = [
+                Transaction(name: "Ethereum", type: "Sell", value: "$2,500", image: "ethereum_logo"),
+                Transaction(name: "Litecoin", type: "Buy", value: "$300", image: "bitcoin_logo"),
+                Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo")
+            ]
+        }
     }
     
 //    func filterData(by timeFrame: String) {

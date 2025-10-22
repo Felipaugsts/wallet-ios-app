@@ -7,6 +7,28 @@
 
 import SwiftUI
 
+enum AvailableThemes {
+    case light
+    case dark
+}
+
+class ThemeManager {
+    static var shared = ThemeManager()
+    
+    var theme: AvailableThemes = .dark
+    
+    func updateTheme(_ theme: AvailableThemes) {
+        if theme == self.theme { return }
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.overrideUserInterfaceStyle = theme == .dark ? .dark : .light
+        }
+        self.theme = theme
+        UserDefaultsUtils.shared.setDarkMode(enable: theme == .dark)
+    }
+}
+
 struct ColorPalette {
     static var primary = Color("primary")
     static var secondary100 = Color("secondary100")
@@ -18,5 +40,7 @@ struct ColorPalette {
     static var green = Color("green")
     static var blue = Color("blue")
     static var red = Color("red")
-    
+    static var light = Color("light")
+    static var disabled = Color("disabled")
+    static var yellow = Color("yellow")
 }

@@ -9,21 +9,19 @@ import SwiftUI
 
 @Observable
 class LocalizationManager: ObservableObject {
-    // MARK: - Variables
     static let shared = LocalizationManager()
     
     var language: SelectedLanguage
     
 
-    init() {
-        language = .english
-    }
+    init() { language = .english }
 
-    // MARK: - Methods
     func saveLanguage(_ language: SelectedLanguage) {
         self.language = language
     }
 }
+
+// MARK: - Enums
 
 public enum SelectedLanguage: String {
     case english = "en"
@@ -36,14 +34,5 @@ public enum SelectedLanguage: String {
         case .portuguese:
             return Locale(identifier: "pt")
         }
-    }
-}
-
-extension String {
-    var localized: String {
-        let currentLanguage = LocalizationManager.shared.language.rawValue
-        let path = Bundle.main.path(forResource: currentLanguage, ofType: "lproj") ?? ""
-        let bundle = Bundle(path: path) ?? .main
-        return NSLocalizedString(self, tableName: nil, bundle: bundle, value: "", comment: "")
     }
 }

@@ -13,7 +13,8 @@ struct StockWalletView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
+            ScrollView {
+                VStack {
                     switch viewModel.viewState {
                     case .loading:
                         ProgressView()
@@ -24,14 +25,21 @@ struct StockWalletView: View {
                     case .loaded:
                         dashboard()
                     }
+                }
+                .navigationTitle("dashboardTitle".localized)
+                .background(ColorPalette.backgroundView)
+                .task { viewModel.loadValues() }
+                .onChange(of: viewModel.selectedFilter) { oldValue, newValue in
+                    viewModel.filterData(by: newValue)
+                }
+                .onChange(of: viewModel.dashboardListSelected) { _, value in
+                    withAnimation(.spring) {
+                        viewModel.filterList(by: value)
+                    }
+                }
             }
-            .background(ColorPalette.backgroundView)
-            .task {
-                viewModel.loadValues()
-            }
-            .onChange(of: viewModel.selectedFilter) { oldValue, newValue in
-                viewModel.filterData(by: newValue)
-            }
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
         }
     }
 }
@@ -45,25 +53,58 @@ extension StockWalletView {
                 currentTap: $viewModel.selectedFilter
             )
             
-            Section(
-                header:
-                    Text("transactions".localized)
-                    .font(.headline)
-                    .foregroundColor(ColorPalette.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading)) {
-                        List(viewModel.transactions) { transaction in
-                            TransactionCard(transaction: transaction)
-                                .listRowInsets(EdgeInsets())
-                                .padding(.vertical, 10)
-                                .padding(.horizontal, 5)
-                        }
-                        .listStyle(.plain)
-                        .background(Color.clear)
+            VStack {
+                HStack {
+                    
+                    Text("\(viewModel.dashboardListSelected)".localized)
+                        .bold()
+                    
+                    Spacer()
+                    
+                    Picker("", selection: $viewModel.dashboardListSelected) {
+                        Text("wallet".localized).tag("wallet")
+                        Text("watch_list".localized).tag("watch_list")
+                        Text("trending".localized).tag("trending")
                     }
-                    .background(ColorPalette.backgroundView)
+                    .pickerStyle(.automatic)
+                }
+                .padding(.horizontal)
+                
+                ForEach(viewModel.filteredList) { transaction in
+                    NavigationLink {
+                        DestinationView(transaction: transaction)
+                    } label: {
+                        TransactionCard(transaction: transaction)
+                            .listRowInsets(EdgeInsets())
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 5)
+                    }
+                }
+            }
             
             Spacer()
         }
+    }
+}
+
+struct Icon: Identifiable {
+    var id: String
+    var color: Color
+}
+
+struct DestinationView: View {
+    var transaction: Transaction
+    
+    var body: some View {
+        VStack {
+            Image(transaction.image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 100, height: 100)
+                .clipShape(.rect(cornerRadius: 12))
+            
+            Text(transaction.name)
+        }
+        .navigationTitle(transaction.name)
     }
 }

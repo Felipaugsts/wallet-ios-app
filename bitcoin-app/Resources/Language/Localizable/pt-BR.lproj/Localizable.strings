@@ -5,7 +5,7 @@
 "language" = "Idioma";
 "english" = "Inglês";
 "portuguese" = "Português";
-"configuration" = "Configuracoes";
+"settingsTitle" = "Configuracoes";
 
 "notification" = "Notificações";
 "theme" = "Modo Escuro";
@@ -25,3 +25,9 @@
 "seven_days" = "7 Dias";
 "one_month" = "1 Mes";
 "one_year" = "7 Ano";
+"dashboardTitle" = "Portfolio";
+"crypto" = "Carteira cripto";
+
+"wallet" = "Carteira";
+"watch_list" = "Favoritos";
+"trending" = "Trending";

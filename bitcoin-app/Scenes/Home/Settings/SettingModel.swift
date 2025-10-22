@@ -20,7 +20,7 @@ struct OptionModel: Codable {
     let icon: String
     let color: String
     let enabled: Bool
-    let type: String?
+    let type: switchTypes?
     let options: [LanguageOptionModel]? // Para opções de idioma, se houver
 }
 
@@ -36,40 +36,8 @@ enum ViewState {
     case failure
 }
 
-//        """
-//            {
-//                "preferences": [
-//                    {
-//                        "title": "Notificações",
-//                        "icon": "bell.fill",
-//                        "color": "orange",
-//                        "enabled": true,
-//                        "type": "toggle"
-//                    },
-//                    {
-//                        "title": "Modo Escuro",
-//                        "icon": "moon.fill",
-//                        "color": "indigo",
-//                        "enabled": false,
-//                        "type": "toggle"
-//                    },
-//                    {
-//                        "title": "Linguagem",
-//                        "icon": "dollarsign.circle.fill",
-//                        "color": "green",
-//                        "enabled": true,
-//                        "type": "picker",
-//                        "options": [
-//                            {
-//                                "title": "Português",
-//                                "tag": 0
-//                            },
-//                            {
-//                                "title": "Inglês",
-//                                "tag": 1
-//                            }
-//                        ]
-//                    }
-//                ]
-//            }
-//            """
+enum switchTypes: String, Codable {
+    case picker = "picker"
+    case navigation = "navigation"
+    case toggle = "toggle"
+}
