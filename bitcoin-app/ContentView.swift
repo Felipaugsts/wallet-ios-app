@@ -6,7 +6,7 @@ struct ContentView: View {
     var body: some View {
         TabView {
             VStack {
-                StockWalletDashboard()
+                StockWalletView()
             }
             .tabItem {
                 Label("Dashboard", systemImage: "list.bullet.rectangle.fill")

@@ -15,21 +15,8 @@ struct SiteView: Identifiable, Equatable {
     var animate: Bool = false
 }
 
-var sampleData: [SiteView] = [
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 1, day: 15, hour: 9))!, values: 150.0),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 2, day: 10, hour: 10))!, values: 300.0),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 5, hour: 11))!, values: 78.5),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 4, day: 20, hour: 12))!, values: 450.0, animate: true),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 5, day: 25, hour: 13))!, values: 200.0),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 6, day: 15, hour: 14))!, values: 340.0, animate: true),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 7, day: 30, hour: 15))!, values: 600.0),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 8, day: 20, hour: 16))!, values: 720.0),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 9, day: 10, hour: 17))!, values: 310.0),
-    SiteView(date: Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 5, hour: 18))!, values: 550.0)
-]
-
 struct ChartView: View {
-    @State var chartData: [SiteView]
+    @Binding var chartData: [SiteView]
     @Binding var currentTap: String
     @State private var currentActive: SiteView?
     @State private var plotWidth: CGFloat = 0
@@ -88,9 +75,9 @@ struct ChartView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Picker("", selection: $currentTap) {
-                    Text("7 week").tag("7 week")
-                    Text("1 month").tag("1 month")
-                    Text("1 year").tag("1 year")
+                    Text("seven_days".localized).tag("seven_days")
+                    Text("one_month".localized).tag("one_month")
+                    Text("one_year".localized).tag("one_year")
                 }
                 .pickerStyle(.segmented)
                 .padding(.top)
@@ -106,7 +93,7 @@ struct ChartView: View {
             ForEach(chartData) { item in
                 if displayLineChart {
                     LineMark(x: .value("hour", item.date, unit: .month), y: .value("Views", item.animate ? item.values : 0))
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.cardinal)
                         .foregroundStyle(Color.green.gradient)
                     
                     
@@ -148,6 +135,9 @@ struct ChartView: View {
         .onAppear {
             animateGraph()
         }
+        .onChange(of: chartData, { oldValue, newValue in
+            animateGraph()
+        })
         .chartXSelection(value: $selectedItem)
     }
     
@@ -165,7 +155,7 @@ struct ChartView: View {
     
     private func animateGraph(fromChange: Bool = false) {
         for (index, _) in chartData.enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * (fromChange ? 0.02 : 0.05)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * (fromChange ? 0.02 : 0.02)) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     chartData[index].animate = true
                 }
@@ -175,9 +165,9 @@ struct ChartView: View {
 }
 
 
-#Preview {
-    ChartView(
-        chartData: sampleData,
-        currentTap: .constant("7 Days")
-    )
-}
+//#Preview {
+//    ChartView(
+//        chartData: sampleData,
+//        currentTap: .constant("7 Days")
+//    )
+//}

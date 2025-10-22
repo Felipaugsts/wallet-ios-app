@@ -12,6 +12,7 @@ class SettingsViewModel: ObservableObject {
     @Published var values: [String: Bool] = [:]
     @Published var pickerValues: [String: Int] = [:]
     @Published var viewState: ViewState = .loading
+    @Published var sections: [SectionModel] = []
     
     func setBinding(for id: String) -> Binding<Bool> {
         return Binding<Bool>(
@@ -82,6 +83,7 @@ class SettingsViewModel: ObservableObject {
   "sections": [
     {
       "sectionTitle": "preferences",
+      "sectionEnabled": true,
       "sectionOptions": [
         {
           "id": "notification",
@@ -123,6 +125,7 @@ class SettingsViewModel: ObservableObject {
     },
     {
       "sectionTitle": "security_and_privacy",
+      "sectionEnabled": true,
       "sectionOptions": [
         {
           "id": "biometric_auth",
@@ -152,6 +155,7 @@ class SettingsViewModel: ObservableObject {
     },
     {
       "sectionTitle": "connected_accounts",
+      "sectionEnabled": false,
       "sectionOptions": [
         {
           "id": "bank_accounts",
@@ -175,6 +179,7 @@ class SettingsViewModel: ObservableObject {
     },
     {
       "sectionTitle": "support",
+      "sectionEnabled": true,
       "sectionOptions": [
         {
           "id": "help_center",
@@ -216,8 +221,9 @@ class SettingsViewModel: ObservableObject {
         
         do {
             let settings = try decoder.decode(SettingsResponse.self, from: data)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.viewState = .loaded(sections: settings.sections)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.sections = settings.sections
+                self.viewState = .loaded
                 self.loadDefaultSelectedValues()
             }
         } catch {

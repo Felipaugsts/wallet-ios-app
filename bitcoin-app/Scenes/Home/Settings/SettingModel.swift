@@ -9,6 +9,7 @@ struct SettingsResponse: Codable {
 // Modelo que representa cada seção
 struct SectionModel: Codable {
     let sectionTitle: String
+    let sectionEnabled: Bool
     let sectionOptions: [OptionModel]
 }
 
@@ -31,7 +32,7 @@ struct LanguageOptionModel: Codable {
 
 enum ViewState {
     case loading
-    case loaded(sections: [SectionModel])
+    case loaded
     case failure
 }
 
