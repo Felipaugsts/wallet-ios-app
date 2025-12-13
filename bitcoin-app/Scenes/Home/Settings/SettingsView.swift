@@ -10,21 +10,19 @@ import SwiftUI
 struct SettingsView: View {
     
     @StateObject var viewModel = SettingsViewModel()
+    @EnvironmentObject var languageManager: LocalizationManager
     
     var body: some View {
-        NavigationView {
-            VStack {
-                switch viewModel.viewState {
-                case .loading:
-                    ProgressView()
-                    
-                case .failure:
-                    ContentUnavailableView(LocalizedStringKey(stringLiteral: "Something went wrong"), systemImage: "")
-                    
-                case .loaded:
-                    loadedValues(sections: viewModel.sections)
-                        .navigationTitle("settingsTitle".localized)
-                }
+        VStack {
+            switch viewModel.viewState {
+            case .loading:
+                ProgressView()
+                
+            case .failure:
+                ContentUnavailableView(LocalizedStringKey(stringLiteral: "Something went wrong"), systemImage: "")
+                
+            case .loaded:
+                loadedValues(sections: viewModel.sections)
             }
         }
         .task { viewModel.fetchData() }

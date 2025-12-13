@@ -20,15 +20,7 @@ class StockWalletViewModel: ObservableObject {
     
     func loadValues() {
         
-        transactions = [
-            Transaction(name: "Bitcoin", type: "Buy", value: "$10,000", image: "bitcoin_logo"),
-            Transaction(name: "Ethereum", type: "Sell", value: "$2,500", image: "ethereum_logo"),
-            Transaction(name: "Litecoin", type: "Buy", value: "$300", image: "bitcoin_logo"),
-            Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo"),
-            Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo"),
-            Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo"),
-            Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo"),
-        ]
+        transactions = []
         filteredList = transactions
         loadedData = sampleData
         filterData(by: "seven_days")
@@ -53,10 +45,11 @@ class StockWalletViewModel: ObservableObject {
             filteredList = transactions
         } else {
             filteredList = [
-                Transaction(name: "Ethereum", type: "Sell", value: "$2,500", image: "ethereum_logo"),
-                Transaction(name: "Litecoin", type: "Buy", value: "$300", image: "bitcoin_logo"),
-                Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo")
-            ]
+//                Transaction(name: "Ethereum", type: "Sell", value: "$2,500", image: "ethereum_logo"),
+//                Transaction(name: "Litecoin", type: "Buy", value: "$300", image: "bitcoin_logo"),
+//                Transaction(name: "Ripple", type: "Sell", value: "$150", image: "bitcoin_logo")
+//            ]
+                ]
         }
     }
     

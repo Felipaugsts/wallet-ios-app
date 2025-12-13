@@ -53,6 +53,8 @@ class SettingsViewModel: ObservableObject {
         
         let isDarkMode = UserDefaultsUtils.shared.getDarkMode()
         values["theme"] = isDarkMode
+        
+        viewState = .loaded
     }
     
     func changeTheme(toDarkMode: Bool) {
@@ -72,165 +74,9 @@ class SettingsViewModel: ObservableObject {
     }
     
     func fetchData() {
-        let jsonData = """
-{
-  "sections": [
-    {
-      "sectionTitle": "preferences",
-      "sectionEnabled": true,
-      "sectionOptions": [
-        {
-          "id": "notification",
-          "title": "notification",
-          "icon": "bell.fill",
-          "color": "orange",
-          "enabled": false,
-          "type": "toggle"
-        },
-        {
-          "id": "crypto",
-          "title": "crypto",
-          "icon": "bitcoinsign.bank.building.fill",
-          "color": "yellow",
-          "enabled": true,
-          "type": "toggle"
-        },
-        {
-          "id": "theme",
-          "title": "theme",
-          "icon": "moon.fill",
-          "color": "indigo",
-          "enabled": true,
-          "type": "toggle"
-        },
-        {
-          "id": "language",
-          "title": "language",
-          "icon": "dollarsign.circle.fill",
-          "color": "green",
-          "enabled": true,
-          "type": "picker",
-          "options": [
-            {
-              "id": "portuguese",
-              "title": "portuguese",
-              "tag": 0
-            },
-            {
-              "id": "english",
-              "title": "english",
-              "tag": 1
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "sectionTitle": "security_and_privacy",
-      "sectionEnabled": true,
-      "sectionOptions": [
-        {
-          "id": "biometric_auth",
-          "title": "biometric_auth",
-          "icon": "faceid",
-          "color": "blue",
-          "enabled": false,
-          "type": "toggle"
-        },
-        {
-          "id": "change_password",
-          "title": "change_password",
-          "icon": "lock.fill",
-          "color": "red",
-          "enabled": false,
-          "type": "navigation"
-        },
-        {
-          "id": "privacy",
-          "title": "privacy",
-          "icon": "hand.raised.fill",
-          "color": "indigo",
-          "enabled": false,
-          "type": "navigation"
-        }
-      ]
-    },
-    {
-      "sectionTitle": "connected_accounts",
-      "sectionEnabled": false,
-      "sectionOptions": [
-        {
-          "id": "bank_accounts",
-          "title": "bank_accounts",
-          "icon": "building.columns.fill",
-          "color": "blue",
-          "enabled": false,
-          "type": "navigation",
-          "note": "3 contas conectadas"
-        },
-        {
-          "id": "credit_cards",
-          "title": "credit_cards",
-          "icon": "creditcard.fill",
-          "color": "orange",
-          "enabled": false,
-          "type": "navigation",
-          "note": "2 cartões conectados"
-        }
-      ]
-    },
-    {
-      "sectionTitle": "support",
-      "sectionEnabled": false,
-      "sectionOptions": [
-        {
-          "id": "help_center",
-          "title": "help_center",
-          "icon": "questionmark.circle.fill",
-          "color": "blue",
-          "enabled": true,
-          "type": "navigation"
-        },
-        {
-          "id": "contact",
-          "title": "contact",
-          "icon": "envelope.fill",
-          "color": "green",
-          "enabled": false,
-          "type": "navigation"
-        },
-        {
-          "id": "about_app",
-          "title": "about_app",
-          "icon": "info.circle.fill",
-          "color": "secondary200",
-          "enabled": false,
-          "type": "navigation"
-        }
-      ]
-    }
-  ]
-}
-"""
-        
-        // Converte a string JSON em Data
-        guard let data = jsonData.data(using: .utf8) else {
-            print("Erro ao converter a string JSON para Data.")
-            return
-        }
-        
-        let decoder = JSONDecoder()
-        
-        do {
-            let settings = try decoder.decode(SettingsResponse.self, from: data)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.sections = settings.sections
-                self.viewState = .loaded
-                self.loadDefaultSelectedValues()
-            }
-        } catch {
-            print("Erro ao decodificar JSON: \(error)")
-        }
+        let sectionValues = RemoteConfigManager.shared.model(model: SettingsResponse.self, for: .configurationView)
+        sections = sectionValues?.sections ?? []
+        self.loadDefaultSelectedValues()
     }
 }
 

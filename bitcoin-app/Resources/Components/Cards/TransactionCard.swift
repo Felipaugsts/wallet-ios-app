@@ -13,7 +13,6 @@ struct Transaction: Identifiable {
     var type: String
     var value: String
     var image: String
-    var dayChangePorcentage: String
 }
 
 struct TransactionCard: View {

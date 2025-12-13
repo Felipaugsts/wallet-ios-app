@@ -1,26 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var languageManager: LocalizationManager
-    
     var body: some View {
-        TabView {
-            VStack {
-                StockWalletView()
-            }
-            .tabItem {
-                Label("Dashboard", systemImage: "list.bullet.rectangle.fill")
-            }
-            
-            SettingsView()
-                .tabItem {
-                    Label("Configurações", systemImage: "gearshape.fill")
-                }
-        }
-        .accentColor(ColorPalette.primary)
+        HomeView()
     }
 }
-
-//#Preview {
-//    ContentView()
-//}

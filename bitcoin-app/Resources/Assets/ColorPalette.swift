@@ -18,12 +18,12 @@ class ThemeManager {
     var theme: AvailableThemes = .dark
     
     func updateTheme(_ theme: AvailableThemes) {
-        if theme == self.theme { return }
-        
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
             window.overrideUserInterfaceStyle = theme == .dark ? .dark : .light
         }
+        
+        if theme == self.theme { return }
         self.theme = theme
         UserDefaultsUtils.shared.setDarkMode(enable: theme == .dark)
     }
@@ -43,4 +43,7 @@ struct ColorPalette {
     static var light = Color("light")
     static var disabled = Color("disabled")
     static var yellow = Color("yellow")
+    static var black = Color("black")
+    static var purple = Color("purple")
+    static var textColor = Color ("textColor")
 }

@@ -31,3 +31,27 @@
 "wallet" = "Carteira";
 "watch_list" = "Favoritos";
 "trending" = "Trending";
+
+
+"dashboard" = "Dashboard";
+"remaining_balance" = "Saldo Restante";
+"vs_previous_month" = "em relação ao mês Anterior";
+"incomes" = "Entradas";
+"expenses" = "Gastos";
+"investments" = "Investimentos";
+"total_invested" = "Total Investido";
+"dividends_received" = "Dividendos Recebidos";
+"credit_cards" = "Cartões de Crédito";
+"due_date" = "Vencimento:";
+"paid" = "PAGO";
+"pay" = "Pagar";
+"transaction_history" = "Histórico de Transações";
+"Salário" = "Salário";
+"Investimento" = "Investimento";
+"Aluguel" = "Aluguel";
+"Supermercado" = "Supermercado";
+"Restaurante" = "Restaurante";
+"Presentes" = "Presentes";
+"Serviços" = "Serviços";
+"Café" = "Café";
+"Transporte" = "Transporte";

@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B3FEE0142EEDB2530097DC4E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE0132EEDB2530097DC4E /* FirebaseAuth */; };
+		B3FEE0162EEDB2530097DC4E /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE0152EEDB2530097DC4E /* FirebaseCore */; };
+		B3FEE0182EEDB2530097DC4E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE0172EEDB2530097DC4E /* FirebaseFirestore */; };
+		B3FEE01A2EEDB2530097DC4E /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE0192EEDB2530097DC4E /* FirebaseFunctions */; };
+		B3FEE01C2EEDB2530097DC4E /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE01B2EEDB2530097DC4E /* FirebaseRemoteConfig */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		B30C1A082E9AA91200151D50 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -77,6 +85,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B3FEE0162EEDB2530097DC4E /* FirebaseCore in Frameworks */,
+				B3FEE0142EEDB2530097DC4E /* FirebaseAuth in Frameworks */,
+				B3FEE0182EEDB2530097DC4E /* FirebaseFirestore in Frameworks */,
+				B3FEE01A2EEDB2530097DC4E /* FirebaseFunctions in Frameworks */,
+				B3FEE01C2EEDB2530097DC4E /* FirebaseRemoteConfig in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +153,11 @@
 				B30C1A852E9D380B00151D50 /* SwiftUICharts */,
 				B38706C72EA2B384004A3B6B /* DSKit */,
 				B38706CA2EA2B3E9004A3B6B /* DSKit */,
+				B3FEE0132EEDB2530097DC4E /* FirebaseAuth */,
+				B3FEE0152EEDB2530097DC4E /* FirebaseCore */,
+				B3FEE0172EEDB2530097DC4E /* FirebaseFirestore */,
+				B3FEE0192EEDB2530097DC4E /* FirebaseFunctions */,
+				B3FEE01B2EEDB2530097DC4E /* FirebaseRemoteConfig */,
 			);
 			productName = "bitcoin-app";
 			productReference = B30C19FA2E9AA90D00151D50 /* bitcoin-app.app */;
@@ -225,6 +243,7 @@
 			mainGroup = B30C19F12E9AA90D00151D50;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B30C19FB2E9AA90D00151D50 /* Products */;
@@ -588,6 +607,17 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		B30C1A852E9D380B00151D50 /* SwiftUICharts */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -600,6 +630,31 @@
 		B38706CA2EA2B3E9004A3B6B /* DSKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DSKit;
+		};
+		B3FEE0132EEDB2530097DC4E /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		B3FEE0152EEDB2530097DC4E /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		B3FEE0172EEDB2530097DC4E /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		B3FEE0192EEDB2530097DC4E /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		B3FEE01B2EEDB2530097DC4E /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

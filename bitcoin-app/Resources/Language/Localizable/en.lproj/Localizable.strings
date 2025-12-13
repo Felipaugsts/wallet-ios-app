@@ -31,3 +31,28 @@
 "wallet" = "Wallet";
 "watch_list" = "Watch list";
 "trending" = "Trending";
+
+
+
+"dashboard" = "Dashboard";
+"remaining_balance" = "Remaining Balance";
+"vs_previous_month" = "vs Previous Month";
+"incomes" = "Incomes";
+"expenses" = "Expenses";
+"investments" = "Investments";
+"total_invested" = "Total Invested";
+"dividends_received" = "Dividends Received";
+"credit_cards" = "Credit Cards";
+"due_date" = "Due Date:";
+"paid" = "PAID";
+"pay" = "Pay";
+"transaction_history" = "Transaction History";
+"Salário" = "Salary";
+"Investimento" = "Investment";
+"Aluguel" = "Rent";
+"Supermercado" = "Grocery Store";
+"Restaurante" = "Restaurant";
+"Presentes" = "Gifts";
+"Serviços" = "Services";
+"Café" = "Coffee";
+"Transporte" = "Transport";

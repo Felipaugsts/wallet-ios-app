@@ -12,35 +12,32 @@ struct StockWalletView: View {
     @StateObject var viewModel = StockWalletViewModel()
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack {
-                    switch viewModel.viewState {
-                    case .loading:
-                        ProgressView()
-                        
-                    case .failure:
-                        ContentUnavailableView(LocalizedStringKey(stringLiteral: "Something went wrong"), systemImage: "")
-                        
-                    case .loaded:
-                        dashboard()
-                    }
-                }
-                .navigationTitle("dashboardTitle".localized)
-                .background(ColorPalette.backgroundView)
-                .task { viewModel.loadValues() }
-                .onChange(of: viewModel.selectedFilter) { oldValue, newValue in
-                    viewModel.filterData(by: newValue)
-                }
-                .onChange(of: viewModel.dashboardListSelected) { _, value in
-                    withAnimation(.spring) {
-                        viewModel.filterList(by: value)
-                    }
+        ScrollView {
+            VStack {
+                switch viewModel.viewState {
+                case .loading:
+                    ProgressView()
+                    
+                case .failure:
+                    ContentUnavailableView(LocalizedStringKey(stringLiteral: "Something went wrong"), systemImage: "")
+                    
+                case .loaded:
+                    dashboard()
                 }
             }
-            .scrollIndicators(.hidden)
-            .scrollBounceBehavior(.basedOnSize)
+            .background(ColorPalette.backgroundView)
+            .task { viewModel.loadValues() }
+            .onChange(of: viewModel.selectedFilter) { oldValue, newValue in
+                viewModel.filterData(by: newValue)
+            }
+            .onChange(of: viewModel.dashboardListSelected) { _, value in
+                withAnimation(.spring) {
+                    viewModel.filterList(by: value)
+                }
+            }
         }
+        .scrollIndicators(.hidden)
+        .scrollBounceBehavior(.basedOnSize)
     }
 }
 extension StockWalletView {
