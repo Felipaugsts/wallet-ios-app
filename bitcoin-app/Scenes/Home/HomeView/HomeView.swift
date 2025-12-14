@@ -19,16 +19,19 @@ struct HomeView: View {
                     DashboardView()
                         .navigationTitle(TextValue.dashboard.localized)
                         .task { viewModel.fetchTabs() }
+                        .padding(.bottom, 75)
                     
                 case "investments":
                     StockWalletView()
                         .navigationTitle(TextValue.dashboardTitle.localized)
                         .navigationBarTitleDisplayMode(.large)
+                        .padding(.bottom, 75)
                     
                 case "configuration":
                     SettingsView()
                         .navigationTitle(TextValue.settingsTitle.localized)
                         .navigationBarTitleDisplayMode(.large)
+                        .padding(.bottom, 75)
                     
                 default:
                     EmptyView()

@@ -18,18 +18,9 @@ struct DashboardView: View {
                         onNavigate: viewModel.navigateMonth
                     )
                     
-                    MainSummaryCard(
-                        balance: viewModel.formatCurrency(viewModel.balance),
-                        percentageChange: viewModel.percentageChange(current: viewModel.balance, previous: viewModel.previousMonthData.incomes - viewModel.previousMonthData.expenses),
-                        isPositive: viewModel.isBalancePositive
-                    )
+                    MainSummaryCard(overview: viewModel.overView)
 
-                    DetailedSummaryView(
-                        incomes: viewModel.formatCurrency(viewModel.currentMonthData.incomes),
-                        incomesChange: viewModel.percentageChange(current: viewModel.currentMonthData.incomes, previous: viewModel.previousMonthData.incomes),
-                        expenses: viewModel.formatCurrency(viewModel.currentMonthData.expenses),
-                        expensesChange: viewModel.percentageChange(current: viewModel.currentMonthData.expenses, previous: viewModel.previousMonthData.expenses)
-                    )
+                    DetailedSummaryView(overview: viewModel.overView)
                     
                     investmentsSection
                     creditCardsSection
@@ -37,8 +28,14 @@ struct DashboardView: View {
                 }
                 .padding()
             }
+            .task { viewModel.fetchSummary() }
             .navigationBarTitleDisplayMode(.large)
             .background(ColorPalette.black.edgesIgnoringSafeArea(.all))
+            .fullScreenCover(isPresented: $viewModel.presentSheed) {
+                AddTransactionSheet(preSelectedValueType: viewModel.preSelectedTransactionType,
+                                    preSelectedCategoryId: viewModel.preSelectedCategoryId,
+                                    delegate: viewModel)
+            }
     
     }
     
@@ -57,12 +54,52 @@ struct DashboardView: View {
         TitledSectionView(title: TextValue.creditCards.localized) {
             ForEach($viewModel.currentMonthData.creditCards) { $card in
                 let dueDateString = "\(TextValue.dueDate.localized) \(viewModel.dayMonthFormatter.string(from: card.dueDate))"
-                ListItemRow(iconName: "creditcard.fill", iconColor: ColorPalette.indigo, title: card.name, subtitle: dueDateString, trailingTopText: viewModel.formatCurrency(card.spent), trailingTopColor: ColorPalette.red) {
-                    if card.isPaid { Text(TextValue.paid.localized).font(.caption).bold().foregroundColor(ColorPalette.green) }
-                    else { Button(TextValue.pay.localized) { card.isPaid = true }.font(.caption).buttonStyle(.borderedProminent).tint(ColorPalette.blue) }
+                ListItemRow(iconName: "creditcard.fill",
+                            iconColor: ColorPalette.indigo,
+                            title: card.name,
+                            subtitle: dueDateString,
+                            trailingTopText: viewModel.formatCurrency(card.spent),
+                            trailingTopColor: ColorPalette.red) {
+                    if card.isPaid {
+                        Text(TextValue.paid.localized).font(.caption).bold().foregroundColor(ColorPalette.green)
+                    } else {
+                        Button(TextValue.pay.localized) {
+                            card.isPaid = true
+                        }.font(.caption).buttonStyle(.borderedProminent).tint(ColorPalette.blue)
+                    }
                 }
-                if card.id != viewModel.currentMonthData.creditCards.last?.id { Divider().padding(.leading, 60) }
+                if card.id != viewModel.currentMonthData.creditCards.last?.id {
+                    Divider().padding(.leading, 60)
+                }
             }
+            
+            addNewItemView {
+                viewModel.displayAddNewTransactionSheet(id: "credit_card", type: .expense)
+            }
+        }
+    }
+    
+    private func addNewItemView(action: @escaping () -> Void) -> some View {
+        VStack(spacing: 3) {
+            Image(systemName: "menubar.arrow.up.rectangle")
+                .font(.body)
+            
+            Text("Click para adicionar um novo campo.")
+                .font(.footnote)
+        }
+        .foregroundColor(.secondary)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(Color.secondary.opacity(0.1))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(style: StrokeStyle(lineWidth: 1.2, dash: [6]))
+                .foregroundColor(Color.secondary.opacity(0.2))
+        )
+        .opacity(0.5)
+        .onTapGesture {
+            action()
         }
     }
     
@@ -74,6 +111,10 @@ struct DashboardView: View {
                 let color = isNegative ? ColorPalette.red : ColorPalette.green
                 ListItemRow(iconName: transaction.iconName, iconColor: color, title: transaction.category.localized, subtitle: viewModel.dayMonthFormatter.string(from: transaction.date), trailingTopText: viewModel.formatCurrency(transaction.value), trailingTopColor: color)
                 if transaction.id != sortedTransactions.last?.id { Divider().padding(.leading, 60) }
+            }
+            
+            addNewItemView {
+                viewModel.displayAddNewTransactionSheet(id: "", type: .expense)
             }
         }
     }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CreditCard: Identifiable, Hashable {
-    let id = UUID(); let name: String; var available: Double; var spent: Double; let dueDate: Date; var isPaid: Bool
+    let id = UUID(); let name: String; var spent: Double; let dueDate: Date; var isPaid: Bool
 }
 
 struct TransactionModel: Identifiable, Hashable {
@@ -21,5 +21,23 @@ struct TransactionModel: Identifiable, Hashable {
 }
 
 struct FinancialData {
-    var expenses: Double; var incomes: Double; var invested: Double; var dividends: Double; var creditCards: [CreditCard]; var transactions: [TransactionModel]
+    var expenses: Double
+    var incomes: Double
+    var invested: Double
+    var dividends: Double
+    var creditCards: [CreditCard]
+    var transactions: [TransactionModel]
+    
+    mutating func updateCreditCards(cards: [TransactionTypeModel]) {
+        creditCards = cards.compactMap { value in
+            if value.categoryId == "credit_card" {
+                return CreditCard(name: value.name,
+                                  spent: value.amount,
+                                  dueDate: value.date,
+                                  isPaid: false)
+            } else {
+                return nil
+            }
+        }
+    }
 }

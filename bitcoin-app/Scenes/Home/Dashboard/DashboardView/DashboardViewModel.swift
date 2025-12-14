@@ -1,0 +1,102 @@
+//
+//  DashboardViewModel.swift
+//  bitcoin-app
+//
+//  Created by Felipe Augusto Silva on 13/12/25.
+//
+
+import Foundation
+import Combine // Necessário para ObservableObject e @Published
+
+// O ViewModel é o cérebro da sua View.
+class DashboardViewModel: ObservableObject {
+    // MARK: - Published Properties
+    // @Published automaticamente notifica a View quando esses valores mudam.
+    @Published var currentDate: Date = Date.from(year: 2025, month: 12, day: 1) {
+        didSet { print("")}
+    }
+    @Published var currentMonthData: FinancialData =  FinancialData(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [], transactions: [])
+    @Published var presentSheed = false
+    @Published var preSelectedCategoryId: String = ""
+    @Published var preSelectedTransactionType: TransactionType = .income
+    @Published var overView: OverviewResult?
+    
+    // MARK: - Computed Properties
+    var previousMonthData: FinancialData {
+        let previousDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
+        return FinancialData(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [], transactions: [])
+    }
+
+    var balance: Double {
+        currentMonthData.incomes - currentMonthData.expenses
+    }
+    
+    var isBalancePositive: Bool {
+        balance >= 0
+    }
+
+    // MARK: - Formatters
+    private let currencyFormatter: NumberFormatter = { let f = NumberFormatter(); f.numberStyle = .currency; f.locale = Locale(identifier: "pt_BR"); return f }()
+    let monthFormatter: DateFormatter = { let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; f.locale = Locale(identifier: "pt_BR"); return f }()
+    let dayMonthFormatter: DateFormatter = { let f = DateFormatter(); f.dateFormat = "dd/MM"; return f }()
+    
+    // MARK: - Public Methods (Actions)
+    func navigateMonth(by value: Int) {
+        guard let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentDate) else { return }
+        currentDate = newDate
+    }
+    
+    // MARK: - Public Methods (Formatting & Calculations)
+    func formatCurrency(_ value: Double) -> String {
+        currencyFormatter.string(from: NSNumber(value: value)) ?? "R$ 0,00"
+    }
+    
+    func percentageChange(current: Double, previous: Double) -> String {
+        if previous == 0 { return current > 0 ? "+100%" : " " }
+        let change = ((current - previous) / previous) * 100
+        return String(format: "%@%.1f%%", change >= 0 ? "+" : "", change)
+    }
+    
+    func displayAddNewTransactionSheet(id: String, type: TransactionType) {
+        preSelectedCategoryId = id
+        preSelectedTransactionType = type
+        presentSheed = true
+    }
+    
+    func fetchSummary() {
+        FirestoreUserService().getUserOverview(userId: "FJN3yYhhiRYJZlWHefhaCV9L2xE3",
+                                               month: 12,
+                                               year: 2025) { result in
+            switch result {
+            case .success(let response):
+                self.overView = response
+                print(response)
+            case .failure(let failure):
+                print("Falha firebase", failure)
+            }
+        }
+        
+        FirestoreUserService().getMontlyExpenses(month: 12, year: 2025) { results in
+            switch results {
+            case .success(let resp):
+                self.currentMonthData.updateCreditCards(cards: resp)
+                
+            case .failure(let failure):
+                print(failure)
+            }
+        }
+    }
+}
+
+extension DashboardViewModel: TransactionDelegate {
+    func updateTransactions() {
+        fetchSummary()
+    }
+}
+
+extension FinancialData {
+    // Um estado vazio para inicialização segura.
+    static var empty: FinancialData {
+        .init(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [], transactions: [])
+    }
+}
