@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AddTransactionSheet: View {
-    
+    var editTransaction: ExpenseModel?
     var preSelectedValueType: TransactionType
     var preSelectedCategoryId: String
     weak var delegate: TransactionDelegate?
@@ -16,13 +16,14 @@ struct AddTransactionSheet: View {
     @StateObject private var viewModel = AddTransactionViewModel()
     @Environment(\.dismiss) private var dismiss
     
-    // Formatador para o campo de valor
     private static let currencyFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale(identifier: "pt_BR")
-        return formatter
-    }()
+          let formatter = NumberFormatter()
+          formatter.numberStyle = .currency
+          formatter.locale = Locale(identifier: "pt_BR")
+          formatter.minimumFractionDigits = 2
+          formatter.maximumFractionDigits = 2
+          return formatter
+      }()
     
     var body: some View {
         NavigationView {
@@ -43,7 +44,7 @@ struct AddTransactionSheet: View {
                         Text(Self.currencyFormatter.currencySymbol)
                             .font(.largeTitle)
                         
-                        TextField("0,00", value: $viewModel.amount, formatter: Self.currencyFormatter)
+                        TextField("R$ 0.00", text: $viewModel.transaction.valueBRL)
                             .font(.system(size: 40, weight: .bold, design: .rounded))
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
@@ -53,13 +54,13 @@ struct AddTransactionSheet: View {
                 
                 // Detalhes Principais
                 Section(header: Text("Detalhes")) {
-                    TextField("Nome (ex: Conta de Luz)", text: $viewModel.name)
-                    TextField("Descrição (opcional)", text: $viewModel.description)
+                    TextField("Nome (ex: Conta de Luz)", text: $viewModel.transaction.name)
+                    TextField("Descrição (opcional)", text: $viewModel.transaction.description)
                 }
                 
                 // Categorias e Data
                 Section {
-                    Picker("Categoria", selection: $viewModel.selectedCategoryId) {
+                    Picker("Categoria", selection: $viewModel.transaction.selectedCategoryId) {
                         ForEach(viewModel.categories) { category in
                             HStack {
                                 Image(systemName: category.icon)
@@ -70,7 +71,7 @@ struct AddTransactionSheet: View {
                     
                     DatePicker(
                         viewModel.transactionType == .expense ? "Vencimento" : "Recebimento",
-                        selection: $viewModel.date,
+                        selection: $viewModel.transaction.dueDate,
                         displayedComponents: .date
                     )
                 }
@@ -92,6 +93,7 @@ struct AddTransactionSheet: View {
                     }
                 }
             }
+            .shimmer(when: $viewModel.isLoading)
             .navigationTitle("Nova Transação")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -108,12 +110,14 @@ struct AddTransactionSheet: View {
             }
             .task(id: preSelectedValueType) {
                 viewModel.transactionType = preSelectedValueType
-                viewModel.selectedCategoryId = preSelectedCategoryId
+                viewModel.populateTransaction(transaction: editTransaction)
+                viewModel.isLoading = false
             }
             .onChange(of: viewModel.shouldUpdateTransactions) { _, _ in
-                delegate?.updateTransactions()
+                delegate?.updateTransactions(transaction: viewModel.transaction)
                 self.dismiss()
             }
+            .springLoadingBehavior(.automatic)
         }
         .tint(viewModel.currencyColor)
     }

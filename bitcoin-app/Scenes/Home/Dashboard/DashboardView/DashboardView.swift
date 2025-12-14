@@ -16,66 +16,31 @@ struct DashboardView: View {
                     HeaderView(
                         month: viewModel.monthFormatter.string(from: viewModel.currentDate),
                         onNavigate: viewModel.navigateMonth
-                    )
+                    ).shimmer(when: $viewModel.isLoading)
                     
-                    MainSummaryCard(overview: viewModel.overView)
-
-                    DetailedSummaryView(overview: viewModel.overView)
+                    MainSummaryCard(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
+                    DetailedSummaryView(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
                     
-                    investmentsSection
-                    creditCardsSection
-                    transactionsSection
+                    investmentsSection.shimmer(when: $viewModel.isLoading)
+                    VStack {}.frame(height: 50)
                 }
                 .padding()
             }
             .task { viewModel.fetchSummary() }
             .navigationBarTitleDisplayMode(.large)
             .background(ColorPalette.black.edgesIgnoringSafeArea(.all))
-            .fullScreenCover(isPresented: $viewModel.presentSheed) {
-                AddTransactionSheet(preSelectedValueType: viewModel.preSelectedTransactionType,
-                                    preSelectedCategoryId: viewModel.preSelectedCategoryId,
-                                    delegate: viewModel)
-            }
-    
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollIndicators(.hidden)
     }
     
     // MARK: - Sections (ainda como computed properties para clareza)
     
     private var investmentsSection: some View {
         TitledSectionView(title: TextValue.investments.localized) {
-            let change = viewModel.percentageChange(current: viewModel.currentMonthData.invested, previous: viewModel.previousMonthData.invested)
-            ListItemRow(iconName: "chart.pie.fill", iconColor: ColorPalette.orange, title: TextValue.totalInvested.localized, subtitle: change, trailingTopText: viewModel.formatCurrency(viewModel.currentMonthData.invested), trailingTopColor: ColorPalette.textColor)
+            let change = viewModel.percentageChange(current: viewModel.overView?.totalInvestedValue ?? 0, previous: viewModel.previousMonthData.invested)
+            ListItemRow(iconName: "chart.pie.fill", iconColor: ColorPalette.orange, title: TextValue.totalInvested.localized, subtitle: change, trailingTopText: viewModel.formatCurrency(viewModel.overView?.totalInvestedValue ?? 0), trailingTopColor: ColorPalette.textColor)
             Divider().padding(.leading, 60)
-            ListItemRow(iconName: "giftcard.fill", iconColor: ColorPalette.orange, title: TextValue.dividendsReceived.localized, subtitle: nil, trailingTopText: viewModel.formatCurrency(viewModel.currentMonthData.dividends), trailingTopColor: ColorPalette.textColor)
-        }
-    }
-    
-    private var creditCardsSection: some View {
-        TitledSectionView(title: TextValue.creditCards.localized) {
-            ForEach($viewModel.currentMonthData.creditCards) { $card in
-                let dueDateString = "\(TextValue.dueDate.localized) \(viewModel.dayMonthFormatter.string(from: card.dueDate))"
-                ListItemRow(iconName: "creditcard.fill",
-                            iconColor: ColorPalette.indigo,
-                            title: card.name,
-                            subtitle: dueDateString,
-                            trailingTopText: viewModel.formatCurrency(card.spent),
-                            trailingTopColor: ColorPalette.red) {
-                    if card.isPaid {
-                        Text(TextValue.paid.localized).font(.caption).bold().foregroundColor(ColorPalette.green)
-                    } else {
-                        Button(TextValue.pay.localized) {
-                            card.isPaid = true
-                        }.font(.caption).buttonStyle(.borderedProminent).tint(ColorPalette.blue)
-                    }
-                }
-                if card.id != viewModel.currentMonthData.creditCards.last?.id {
-                    Divider().padding(.leading, 60)
-                }
-            }
-            
-            addNewItemView {
-                viewModel.displayAddNewTransactionSheet(id: "credit_card", type: .expense)
-            }
+            ListItemRow(iconName: "giftcard.fill", iconColor: ColorPalette.orange, title: TextValue.dividendsReceived.localized, subtitle: nil, trailingTopText: viewModel.formatCurrency(viewModel.overView?.currentMonthDividends ?? 0), trailingTopColor: ColorPalette.textColor)
         }
     }
     
@@ -102,20 +67,35 @@ struct DashboardView: View {
             action()
         }
     }
-    
-    private var transactionsSection: some View {
-        TitledSectionView(title: TextValue.transactionHistory.localized) {
-            let sortedTransactions = viewModel.currentMonthData.transactions.sorted(by: { $0.date > $1.date })
-            ForEach(sortedTransactions) { transaction in
-                let isNegative = transaction.value < 0
-                let color = isNegative ? ColorPalette.red : ColorPalette.green
-                ListItemRow(iconName: transaction.iconName, iconColor: color, title: transaction.category.localized, subtitle: viewModel.dayMonthFormatter.string(from: transaction.date), trailingTopText: viewModel.formatCurrency(transaction.value), trailingTopColor: color)
-                if transaction.id != sortedTransactions.last?.id { Divider().padding(.leading, 60) }
-            }
-            
-            addNewItemView {
-                viewModel.displayAddNewTransactionSheet(id: "", type: .expense)
-            }
+}
+
+extension View {
+    @ViewBuilder
+    func shimmer(when isLoading: Binding<Bool>) -> some View {
+        if isLoading.wrappedValue {
+            self.modifier(Shimmer())
+                .redacted(reason: isLoading.wrappedValue ? .placeholder : [])
+        } else {
+            self
         }
+    }
+}
+
+public struct Shimmer: ViewModifier {
+    @State private var isInitialState = true
+    
+    public func body(content: Content) -> some View {
+        content
+            .mask(
+                LinearGradient(
+                    gradient: .init(colors: [.black.opacity(0.4), .black, .black.opacity(0.4)]),
+                    startPoint: (isInitialState ? .init(x: -0.3, y: -0.3) : .init(x: 1, y: 1)),
+                    endPoint: (isInitialState ? .init(x: 0, y: 0) : .init(x: 1.3, y: 1.3))
+                )
+            )
+            .animation(.linear(duration: 1.5).delay(0.25).repeatForever(autoreverses: false), value: isInitialState)
+            .onAppear {
+                isInitialState = false
+            }
     }
 }

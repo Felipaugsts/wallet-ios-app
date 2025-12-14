@@ -8,27 +8,26 @@
 import Foundation
 import Combine // Necessário para ObservableObject e @Published
 
-// O ViewModel é o cérebro da sua View.
 class DashboardViewModel: ObservableObject {
     // MARK: - Published Properties
     // @Published automaticamente notifica a View quando esses valores mudam.
     @Published var currentDate: Date = Date.from(year: 2025, month: 12, day: 1) {
         didSet { print("")}
     }
-    @Published var currentMonthData: FinancialData =  FinancialData(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [], transactions: [])
     @Published var presentSheed = false
     @Published var preSelectedCategoryId: String = ""
     @Published var preSelectedTransactionType: TransactionType = .income
     @Published var overView: OverviewResult?
+    @Published var isLoading: Bool = true
     
     // MARK: - Computed Properties
     var previousMonthData: FinancialData {
-        let previousDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
-        return FinancialData(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [], transactions: [])
+//        let previousDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
+        return FinancialData(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [])
     }
 
     var balance: Double {
-        currentMonthData.incomes - currentMonthData.expenses
+        Double(Int(overView?.incomeTotal ?? 0) - Int(overView?.expenseTotal ?? 0))
     }
     
     var isBalancePositive: Bool {
@@ -70,33 +69,19 @@ class DashboardViewModel: ObservableObject {
             switch result {
             case .success(let response):
                 self.overView = response
-                print(response)
+                
             case .failure(let failure):
                 print("Falha firebase", failure)
             }
+            
+            self.isLoading = false
         }
-        
-        FirestoreUserService().getMontlyExpenses(month: 12, year: 2025) { results in
-            switch results {
-            case .success(let resp):
-                self.currentMonthData.updateCreditCards(cards: resp)
-                
-            case .failure(let failure):
-                print(failure)
-            }
-        }
-    }
-}
-
-extension DashboardViewModel: TransactionDelegate {
-    func updateTransactions() {
-        fetchSummary()
     }
 }
 
 extension FinancialData {
     // Um estado vazio para inicialização segura.
     static var empty: FinancialData {
-        .init(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [], transactions: [])
+        .init(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [])
     }
 }

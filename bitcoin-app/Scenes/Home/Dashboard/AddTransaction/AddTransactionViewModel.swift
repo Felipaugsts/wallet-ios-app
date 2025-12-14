@@ -13,16 +13,14 @@ class AddTransactionViewModel: ObservableObject {
     
     // MARK: - Form State
     @Published var transactionType: TransactionType = .expense
-    @Published var amount: Double = 0.0
-    @Published var name: String = ""
-    @Published var description: String = ""
-    @Published var date: Date = Date()
-    @Published var selectedCategoryId: String = ""
     @Published var isRecurring: Bool = false
     @Published var recurrenceMonths: Int = 2
     @Published var shouldRemind: Bool = false
+    @Published var value: Double = 0
     @Published var reminderDays: Int = 3
     @Published var shouldUpdateTransactions: Bool = false
+    @Published var transaction: ExpenseModel = ExpenseModel(transactionID: "")
+    @Published var isLoading: Bool = false
     
     // MARK: - Computed Properties
     var currencyColor: Color {
@@ -30,51 +28,65 @@ class AddTransactionViewModel: ObservableObject {
     }
     
     var isFormValid: Bool {
-        !name.isEmpty && amount > 0 && !selectedCategoryId.isEmpty
-    }
-    
-    var categories: [Category] {
-        transactionType == .expense ? expenseCategories : incomeCategories
+        !transaction.name.isEmpty && Double(transaction.valueBRL) ?? 0 > 0 && !transaction.selectedCategoryId.isEmpty
     }
     
     // MARK: - Data Source
-    let expenseCategories: [Category] = [
-        .init(id: "fixed", name: "Contas Fixas", icon: "house.fill"),
-        .init(id: "credit_card", name: "Cartão de Crédito", icon: "creditcard.fill"),
-        .init(id: "transport", name: "Transporte", icon: "car.fill"),
-        .init(id: "food", name: "Alimentação", icon: "fork.knife"),
-        .init(id: "leisure", name: "Lazer", icon: "popcorn.fill"),
-        .init(id: "other", name: "Outros", icon: "tag.fill")
-    ]
+    let expenseCategories: [Category] = {
+        RemoteConfigManager.shared.model(model: [Category].self, for: .wpCategories) ?? [].filter { $0.isExpense == true }
+    }()
     
-    let incomeCategories: [Category] = [
-        .init(id: "salary", name: "Salário", icon: "dollarsign.circle.fill"),
-        .init(id: "dividends", name: "Dividendos", icon: "chart.line.uptrend.xyaxis.circle.fill"),
-        .init(id: "freelance", name: "Freelance", icon: "laptopcomputer"),
-        .init(id: "other", name: "Outros", icon: "tag.fill")
-    ]
+    lazy var categories: [Category] = {
+        let allCategories: [Category] = RemoteConfigManager.shared.model(model: [Category].self, for: .wpCategories) ?? []
+        
+        return allCategories.filter { $0.isExpense == (transactionType != .expense) }
+    }()
     
     // MARK: - Actions
+    
+    func populateTransaction(transaction: ExpenseModel?) {
+        guard let transaction else { return }
+        
+        self.transaction = transaction
+        transactionType = transaction.type
+        
+    }
+    
     func saveTransaction() {
         guard isFormValid else { return }
+        isLoading = true
+
+        let calendar = Calendar.current
+        let month = calendar.component(.month, from: transaction.dueDate)
+        let year = calendar.component(.year, from: transaction.dueDate)
+        
         let data: [String: Any] = [
             "user_id": "FJN3yYhhiRYJZlWHefhaCV9L2xE3",
             "type": transactionType.rawValue,
-            "name": name,
-            "description": description,
-            "categoryId": selectedCategoryId,
-            "date": date,
-            "amount": amount,
+            "name": transaction.name,
+            "description": transaction.description,
+            "categoryId": transaction.selectedCategoryId,
+            "date": transaction.dueDate,
+            "amount": transaction.valueBRL,
             "isRecurring": isRecurring,
             "recurrenceMonths": recurrenceMonths,
-            "month": 12,
-            "year": 2025
+            "month": month,
+            "icon": categories.first(where: { $0.name == transaction.selectedCategoryId }) ?? "",
+            "year": year
         ]
+        if !transaction.transactionID.isEmpty{
+            updateExpense(data: data)
+            return
+        }
         
         if transactionType == .expense {
             saveExpense(data: data)
-        } else if transactionType == .income {
+            return
+        }
+        
+        if transactionType == .income {
             saveIncome(data: data)
+            return
         }
     }
     
@@ -90,10 +102,24 @@ class AddTransactionViewModel: ObservableObject {
         }
     }
     
+    func updateExpense(data: [String: Any]) {
+        let collection = transactionType == .expense ? "expenses" : "incomes"
+        FirestoreUserService().updateDocument(collection: collection,
+                                              documentId: transaction.id,
+                                              updates: data) { results in
+            switch results {
+            case .success(_):
+                self.shouldUpdateTransactions = true
+            case .failure(_):
+                break
+            }
+        }
+    }
+    
     func saveExpense(data: [String: Any]) {
         FirestoreUserService().createExpense(data: data) { results in
             switch results {
-            case .success(let success):
+            case .success( _):
                 print("success")
                 self.shouldUpdateTransactions = true
             case .failure(let failure):
@@ -108,15 +134,9 @@ enum TransactionType: String, CaseIterable {
     case income = "Receita"
 }
 
-// Struct para representar uma categoria
-struct Category: Identifiable, Hashable {
-    let id: String
-    let name: String
-    let icon: String
-}
-
 // O objeto final que será salvo
 struct TransactionTypeModel {
+    let transactionId: String
     let type: TransactionType
     let name: String
     let description: String
@@ -128,5 +148,5 @@ struct TransactionTypeModel {
 }
 
 protocol TransactionDelegate: AnyObject {
-    func updateTransactions()
+    func updateTransactions(transaction: ExpenseModel)
 }

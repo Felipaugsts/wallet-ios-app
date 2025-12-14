@@ -31,7 +31,9 @@ struct MainSummaryCard: View {
             Text(TextValue.remainingBalance.localized).font(.title3)
                 .foregroundColor(Color.white.opacity(0.8))
             
-            Text(String(describing: overview?.balance ?? 0)).font(.largeTitle).fontWeight(.bold)
+            Text("$\(overview?.balance ?? 0, specifier: "%.2f")")
+                .font(.largeTitle)
+                .fontWeight(.bold)
                 .foregroundColor(Color.white)
             
             HStack {
@@ -61,13 +63,24 @@ struct DetailedSummaryView: View {
     
     var body: some View {
         HStack {
-            SummaryDetailCard(title: TextValue.incomes.localized, value: String(describing: overview?.incomeTotal ?? 0),
-                              percentageChange: String(describing: overview?.incomeChangePercent ?? 0),
-                              iconName: "arrow.down.left", color: ColorPalette.green)
-            SummaryDetailCard(title: TextValue.expenses.localized,
-                              value: String(describing: overview?.expenseTotal ?? 0),
-                              percentageChange: String(describing: overview?.expenseChangePercent ?? 0),
-                              iconName: "arrow.up.right", color: ColorPalette.red)
+            
+            NavigationLink {
+                SubscriptionManagerView(transactionsType: .income, datasource: overview?.incomeTransactions)
+            } label: {
+                SummaryDetailCard(title: TextValue.incomes.localized, value: String(describing: overview?.incomeTotal ?? 0),
+                                  percentageChange: String(describing: overview?.incomeChangePercent ?? 0),
+                                  iconName: "arrow.down.left",
+                                  color: ColorPalette.green)
+            }
+            
+            NavigationLink {
+                SubscriptionManagerView(transactionsType: .expense, datasource: overview?.expensesTransactions)
+            } label: {
+                SummaryDetailCard(title: TextValue.expenses.localized,
+                                  value: String(describing: overview?.expenseTotal ?? 0),
+                                  percentageChange: String(describing: overview?.expenseChangePercent ?? 0),
+                                  iconName: "arrow.up.right", color: ColorPalette.red)
+            }
         }
     }
 }

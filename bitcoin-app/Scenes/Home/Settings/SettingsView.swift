@@ -14,36 +14,24 @@ struct SettingsView: View {
     
     var body: some View {
         VStack {
-            switch viewModel.viewState {
-            case .loading:
-                ProgressView()
+            List {
+                ForEach(viewModel.sections, id: \.sectionTitle) { section in
+                    if section.sectionEnabled {
+                        Section(header: Text(section.sectionTitle.localized)) {
+                            ForEach(section.sectionOptions, id: \.id) { item in
+                                sectionsCards(item: item)
+                                    .shimmer(when: $viewModel.isLoading)
+                            }
+                        }
+                    }
+                }
                 
-            case .failure:
-                ContentUnavailableView(LocalizedStringKey(stringLiteral: "Something went wrong"), systemImage: "")
-                
-            case .loaded:
-                loadedValues(sections: viewModel.sections)
+                fixedSections()
+                    .shimmer(when: $viewModel.isLoading)
             }
         }
         .task { viewModel.fetchData() }
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(.hidden)
-    }
-    
-    @ViewBuilder
-    func loadedValues(sections: [SectionModel]) -> some View {
-        List {
-            ForEach(sections, id: \.sectionTitle) { section in
-                if section.sectionEnabled {
-                    Section(header: Text(section.sectionTitle.localized)) {
-                        ForEach(section.sectionOptions, id: \.id) { item in
-                            sectionsCards(item: item)
-                        }
-                    }
-                }
-            }
-            
-            fixedSections()
-        }
     }
 }

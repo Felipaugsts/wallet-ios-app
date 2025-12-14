@@ -41,3 +41,85 @@ enum switchTypes: String, Codable {
     case navigation = "navigation"
     case toggle = "toggle"
 }
+
+extension SettingsResponse {
+    static func mock() -> SettingsResponse {
+        return SettingsResponse(sections: [
+            SectionModel(
+                sectionTitle: "preferences",
+                sectionEnabled: true,
+                sectionOptions: [
+                    OptionModel(
+                        id: "mockTest",
+                        title: "mockTest",
+                        icon: "bell.fill",
+                        color: "green",
+                        enabled: false,
+                        type: .toggle,
+                        options: nil
+                    ),
+                    OptionModel(
+                        id: "mockTest",
+                        title: "mockTest",
+                        icon: "bitcoinsign.bank.building.fill",
+                        color: "yellow",
+                        enabled: false,
+                        type: .toggle,
+                        options: nil
+                    ),
+                    OptionModel(
+                        id: "mockTest",
+                        title: "mockTest",
+                        icon: "moon.fill",
+                        color: "indigo",
+                        enabled: false,
+                        type: .toggle,
+                        options: nil
+                    ),
+                    OptionModel(
+                        id: "mockTest",
+                        title: "mockTest",
+                        icon: "dollarsign.circle.fill",
+                        color: "green",
+                        enabled: false,
+                        type: .picker,
+                        options: []
+                    )
+                ]
+            ),
+            SectionModel(
+                sectionTitle: "security_and_privacy",
+                sectionEnabled: true,
+                sectionOptions: [
+                    OptionModel(
+                        id: "biometric_auth",
+                        title: "biometric_auth",
+                        icon: "faceid",
+                        color: "blue",
+                        enabled: false,
+                        type: .toggle,
+                        options: nil
+                    ),
+                    OptionModel(
+                        id: "change_password",
+                        title: "change_password",
+                        icon: "lock.fill",
+                        color: "red",
+                        enabled: false,
+                        type: .navigation,
+                        options: nil
+                    ),
+                    OptionModel(
+                        id: "privacy",
+                        title: "privacy",
+                        icon: "hand.raised.fill",
+                        color: "indigo",
+                        enabled: false,
+                        type: .navigation,
+                        options: nil
+                    )
+                ]
+            )
+        ])
+    }
+}

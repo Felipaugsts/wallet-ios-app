@@ -29,11 +29,7 @@ class RemoteConfigManager {
         
         // Configuração dos valores padrão
         self.remoteConfig.setDefaults([
-            "booking_enable_firstClassUpgrade": false as NSObject,
-            "seatMap_layout": "classic" as NSObject,
-            "offers_percent": 0 as NSObject,
-            "booking_enable_ios18_feature": false as NSObject,
-            "wp_configuration_view": "default value" as NSObject // Adicione um valor padrão
+            "wp_configuration_view": "default value" as NSObject
         ])
     }
     
@@ -71,6 +67,7 @@ class RemoteConfigManager {
 enum RemoteConfigKeys: String {
     case configurationView = "wp_configuration_view"
     case tabConfiguration = "wp_tabview_config"
+    case wpCategories = "wp_categories"
 }
 
 extension Data {

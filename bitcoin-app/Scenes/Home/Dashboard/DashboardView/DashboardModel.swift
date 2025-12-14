@@ -7,16 +7,45 @@
 
 import SwiftUI
 
-struct CreditCard: Identifiable, Hashable {
-    let id = UUID(); let name: String; var spent: Double; let dueDate: Date; var isPaid: Bool
-}
-
-struct TransactionModel: Identifiable, Hashable {
-    let id = UUID(); let date: Date; let category: String; let value: Double
-    var iconName: String {
-        switch category {
-        case "Salário": return "dollarsign.circle.fill"; case "Investimento": return "chart.line.uptrend.circle.fill"; case "Aluguel": return "house.fill"; case "Supermercado": return "cart.fill"; case "Restaurante": return "fork.knife.circle.fill"; case "Presentes": return "gift.fill"; case "Serviços": return "wrench.and.screwdriver.fill"; case "Café": return "cup.and.saucer.fill"; case "Transporte": return "car.fill"; default: return "tag.fill"
-        }
+struct ExpenseModel: Identifiable, Hashable {
+    var id: String { transactionID }
+    var transactionID: String
+    var type: TransactionType
+    var name: String
+    var icon: String
+    var description: String
+    var color: Color
+    var valueBRL: String
+    var dueDate: Date
+    var isPaid: Bool
+    var selectedCategoryId: String
+    var isRecurring: Bool
+    var recurrenceMonths: Int
+    
+    init(transactionID: String,
+          type: TransactionType = .expense,
+          name: String = "Nova Transação",
+          icon: String = "dollarsign.circle",
+          description: String = "",
+          color: Color = .blue,
+          valueBRL: String = "0",
+          dueDate: Date = Date(),
+          isPaid: Bool = false,
+          selectedCategoryId: String = "",
+          isRecurring: Bool = false,
+          recurrenceMonths: Int = 1) {
+        self.transactionID = transactionID
+        self.type = type
+        self.name = name
+        self.icon = icon
+        self.description = description
+        self.color = color
+        self.valueBRL = valueBRL
+        self.dueDate = dueDate
+        self.isPaid = isPaid
+        self.selectedCategoryId = selectedCategoryId
+        self.isRecurring = isRecurring
+        self.recurrenceMonths = recurrenceMonths
     }
 }
 
@@ -25,19 +54,5 @@ struct FinancialData {
     var incomes: Double
     var invested: Double
     var dividends: Double
-    var creditCards: [CreditCard]
-    var transactions: [TransactionModel]
-    
-    mutating func updateCreditCards(cards: [TransactionTypeModel]) {
-        creditCards = cards.compactMap { value in
-            if value.categoryId == "credit_card" {
-                return CreditCard(name: value.name,
-                                  spent: value.amount,
-                                  dueDate: value.date,
-                                  isPaid: false)
-            } else {
-                return nil
-            }
-        }
-    }
+    var creditCards: [ExpenseModel]
 }

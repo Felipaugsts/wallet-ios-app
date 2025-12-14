@@ -22,7 +22,7 @@ struct ChartView: View {
     @State private var plotWidth: CGFloat = 0
     @State private var selectedItem: Date?
     
-    @State var displayLineChart: Bool = true
+    @State var displayLineChart: Bool = false
     @State var displayRuleMark: Bool = false
     
     var selectedDateView: SiteView? {

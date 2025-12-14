@@ -52,7 +52,7 @@ struct FloatingTabBar: View {
             .padding(.vertical, 10)
             .background(
                 Capsule()
-                    .fill(ColorPalette.black.opacity(0.9))
+                    .fill(ColorPalette.black.opacity(0.8))
                     .shadow(color: ColorPalette.light.opacity(0.3), radius: 5, x: 0, y: 3)
             )
             .padding(.horizontal)

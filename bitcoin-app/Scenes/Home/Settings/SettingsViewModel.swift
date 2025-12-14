@@ -11,8 +11,8 @@ class SettingsViewModel: ObservableObject {
     
     @Published var values: [String: Bool] = [:]
     @Published var pickerValues: [String: Int] = [:]
-    @Published var viewState: ViewState = .loading
-    @Published var sections: [SectionModel] = []
+    @Published var isLoading: Bool = true
+    @Published var sections: [SectionModel] = SettingsResponse.mock().sections
     
     func setBinding(for id: String) -> Binding<Bool> {
         return Binding<Bool>(
@@ -53,8 +53,6 @@ class SettingsViewModel: ObservableObject {
         
         let isDarkMode = UserDefaultsUtils.shared.getDarkMode()
         values["theme"] = isDarkMode
-        
-        viewState = .loaded
     }
     
     func changeTheme(toDarkMode: Bool) {
@@ -76,7 +74,8 @@ class SettingsViewModel: ObservableObject {
     func fetchData() {
         let sectionValues = RemoteConfigManager.shared.model(model: SettingsResponse.self, for: .configurationView)
         sections = sectionValues?.sections ?? []
-        self.loadDefaultSelectedValues()
+        loadDefaultSelectedValues()
+        isLoading = false
     }
 }
 
