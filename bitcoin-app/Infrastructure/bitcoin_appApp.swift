@@ -7,6 +7,8 @@
 
 import SwiftUI
 import FirebaseCore
+import Firebase
+import GoogleSignIn
 
 @main
 struct bitcoin_appApp: App {
@@ -14,9 +16,12 @@ struct bitcoin_appApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreen()
                 .environment(languageManager)
                 .environment(\.locale, languageManager.language.locale)
+                .onOpenURL(perform: { url in
+                    GIDSignIn.sharedInstance.handle(url)
+                })
                 .onAppear {
                     FirebaseApp.configure()
                     RemoteConfigManager.shared.fetchAndActivate()

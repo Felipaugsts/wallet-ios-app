@@ -2,7 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps.64504481767</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.64504481767-ctfupfln8ak6ei4o2q6pevcdg7gn9h0v</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAllowsArbitraryLoads</key>
 	<true/>
+	<key>NSBiometricUsageDescription</key>
+	<string>Precisamos usar o Touch ID para autenticar você de forma segura.</string>
 </dict>
 </plist>

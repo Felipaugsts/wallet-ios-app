@@ -29,9 +29,47 @@ struct SettingsView: View {
                 fixedSections()
                     .shimmer(when: $viewModel.isLoading)
             }
+            
+            VStack {}.frame(height: 50)
         }
         .task { viewModel.fetchData() }
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(.hidden)
+        .navigationDestination(isPresented: $viewModel.didLogOut) {
+            LoginScreen()
+        }
+    }
+    
+    @ViewBuilder
+    func fixedSections() -> some View {
+        Section {
+            Button(action: {
+                viewModel.logout()
+            }) {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .foregroundColor(.red)
+                        .frame(width: 28)
+                    Text("Sair")
+                        .foregroundColor(.red)
+                }
+            }
+        }
+        
+        Section {
+            HStack {
+                Spacer()
+                VStack(spacing: 4) {
+                    Text("Finanças Pessoais")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("Versão 1.0.0")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
     }
 }

@@ -13,6 +13,7 @@ class SettingsViewModel: ObservableObject {
     @Published var pickerValues: [String: Int] = [:]
     @Published var isLoading: Bool = true
     @Published var sections: [SectionModel] = SettingsResponse.mock().sections
+    @Published var didLogOut: Bool = false
     
     func setBinding(for id: String) -> Binding<Bool> {
         return Binding<Bool>(
@@ -26,6 +27,10 @@ class SettingsViewModel: ObservableObject {
                 
                 if id == "theme" {
                     self.changeTheme(toDarkMode: newValue)
+                }
+                
+                if id == "biometric_auth" {
+                    UserRepository.shared.isBiometricEnabled = newValue
                 }
             }
         )
@@ -53,6 +58,7 @@ class SettingsViewModel: ObservableObject {
         
         let isDarkMode = UserDefaultsUtils.shared.getDarkMode()
         values["theme"] = isDarkMode
+        values["biometric_auth"] = UserRepository.shared.isBiometricEnabled
     }
     
     func changeTheme(toDarkMode: Bool) {
@@ -76,6 +82,10 @@ class SettingsViewModel: ObservableObject {
         sections = sectionValues?.sections ?? []
         loadDefaultSelectedValues()
         isLoading = false
+    }
+    
+    func logout() {
+        UserRepository.shared.logout()
     }
 }
 

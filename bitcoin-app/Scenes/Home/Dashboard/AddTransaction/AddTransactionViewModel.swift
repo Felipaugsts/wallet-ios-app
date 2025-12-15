@@ -61,7 +61,6 @@ class AddTransactionViewModel: ObservableObject {
         let year = calendar.component(.year, from: transaction.dueDate)
         
         let data: [String: Any] = [
-            "user_id": "FJN3yYhhiRYJZlWHefhaCV9L2xE3",
             "type": transactionType.rawValue,
             "name": transaction.name,
             "description": transaction.description,

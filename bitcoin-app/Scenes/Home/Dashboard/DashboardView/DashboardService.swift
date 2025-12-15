@@ -35,12 +35,11 @@ final class FirestoreUserService {
     // MARK: - User Overview (Month)
     
     func getUserOverview(
-        userId: String,
         month: Int,
         year: Int,
         completion: @escaping (Result<OverviewResult, Error>) -> Void
     ) {
-        
+        let userId = UserRepository.shared.loadUser()?.id ?? ""
         func previousMonth(month: Int, year: Int) -> (Int, Int) {
             if month == 1 { return (12, year - 1) }
             return (month - 1, year)
@@ -170,6 +169,7 @@ final class FirestoreUserService {
         var payload = data
         payload["created_at"] = Timestamp(date: Date())
         payload["updated_at"] = Timestamp(date: Date())
+        payload["user_id"] = UserRepository.shared.loadUser()?.id ?? ""
         
         db.collection("expenses").addDocument(data: payload) { error in
             if let error = error {
@@ -190,6 +190,7 @@ final class FirestoreUserService {
         var payload = data
         payload["created_at"] = Timestamp(date: Date())
         payload["updated_at"] = Timestamp(date: Date())
+        payload["user_id"] = UserRepository.shared.loadUser()?.id ?? ""
         
         db.collection("incomes").addDocument(data: payload) { error in
             if let error = error {

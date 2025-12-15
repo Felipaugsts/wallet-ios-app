@@ -20,6 +20,7 @@ class DashboardViewModel: ObservableObject {
     @Published var overView: OverviewResult?
     @Published var isLoading: Bool = true
     
+    let user = UserRepository.shared.loadUser()
     // MARK: - Computed Properties
     var previousMonthData: FinancialData {
 //        let previousDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
@@ -63,8 +64,8 @@ class DashboardViewModel: ObservableObject {
     }
     
     func fetchSummary() {
-        FirestoreUserService().getUserOverview(userId: "FJN3yYhhiRYJZlWHefhaCV9L2xE3",
-                                               month: 12,
+        isLoading = true
+        FirestoreUserService().getUserOverview(month: 12,
                                                year: 2025) { result in
             switch result {
             case .success(let response):
