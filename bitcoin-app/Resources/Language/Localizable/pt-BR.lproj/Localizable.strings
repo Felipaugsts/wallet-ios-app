@@ -5,7 +5,7 @@
 "language" = "Idioma";
 "english" = "Inglês";
 "portuguese" = "Português";
-"settingsTitle" = "Configuracoes";
+"settingsTitle" = "Configurações";
 
 "notification" = "Notificações";
 "theme" = "Modo Escuro";
@@ -32,6 +32,7 @@
 "watch_list" = "Favoritos";
 "trending" = "Trending";
 
+"logout" = "Sair";
 
 "dashboard" = "Dashboard";
 "remaining_balance" = "Saldo Restante";
@@ -55,3 +56,27 @@
 "Serviços" = "Serviços";
 "Café" = "Café";
 "Transporte" = "Transporte";
+
+"montlyTotalAmount" = "Total mensal";
+"startAddingExpense" = "Comece a adicionar uma nova despesa para ver o resumo mensal aqui.";
+"addExpense" = "Adicionar Despesa";
+"edit" = "Editar";
+"delete" = "Excluir";
+"confirmDeleteTitle" = "Deseja excluir a recorrência?";
+"confirmDeleteYes" = "Sim, excluir recorrência";
+"confirmDeleteNo" = "Não, apenas este mês";
+"confirmDeleteCancel" = "Cancelar";
+"monthly" = "Mensal";
+"emptyValuesTitle" = "Nada encontrado";
+
+
+"fixed" = "Contas Fixas";
+"credit_card" = "Cartão de Crédito";
+"transport" = "Transporte";
+"food" = "Alimentação";
+"leisure" = "Lazer";
+"other" = "Outros";
+"salary" = "Salário";
+"dividends" = "Dividendos";
+"freelance" = "Freelance";
+"other_income" = "Outros";

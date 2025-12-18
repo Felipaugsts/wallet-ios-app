@@ -28,7 +28,6 @@ class UserRepository {
     
     static var shared = UserRepository()
     
-    // Salva o usuário no Keychain
     func saveUser(_ user: User) -> Bool {
         guard let userData = try? JSONEncoder().encode(user) else {
             return false

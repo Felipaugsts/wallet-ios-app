@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import LocalAuthentication
 
 class SettingsViewModel: ObservableObject {
     
@@ -14,6 +15,8 @@ class SettingsViewModel: ObservableObject {
     @Published var isLoading: Bool = true
     @Published var sections: [SectionModel] = SettingsResponse.mock().sections
     @Published var didLogOut: Bool = false
+    @Published var screenEnabled: Bool = true
+    @Published var user: User? = UserRepository.shared.loadUser()
     
     func setBinding(for id: String) -> Binding<Bool> {
         return Binding<Bool>(
@@ -30,7 +33,7 @@ class SettingsViewModel: ObservableObject {
                 }
                 
                 if id == "biometric_auth" {
-                    UserRepository.shared.isBiometricEnabled = newValue
+                    self.handleBiometryPermission(enabled: newValue)
                 }
             }
         )
@@ -74,7 +77,7 @@ class SettingsViewModel: ObservableObject {
             newLanguage = .portuguese
         }
         
-        LocalizationManager.shared.language = newLanguage
+        LocalizationManager.shared.saveLanguage(newLanguage)
     }
     
     func fetchData() {
@@ -87,12 +90,32 @@ class SettingsViewModel: ObservableObject {
     func logout() {
         UserRepository.shared.logout()
     }
+    
+    @MainActor
+    func handleBiometryPermission(enabled: Bool) {
+        screenEnabled = false
+        let context = LAContext()
+        var error: NSError?
+        
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Para acessar sua conta de finanças.") { success, error in
+                if success {
+                    UserRepository.shared.isBiometricEnabled = enabled
+                } else {
+                    self.values["biometric_auth"] = UserRepository.shared.isBiometricEnabled
+                }
+                
+                self.screenEnabled = true
+            }
+        }
+    }
 }
 
 
 class Constants {
     public static let DARK_MODE = "DARK_MODE"
     public static let LIGHT_MODE = "LIGHT_MODE"
+    public static let LANGUAGE = "LANGUAGE"
 }
 
 class UserDefaultsUtils {
@@ -104,5 +127,14 @@ class UserDefaultsUtils {
     func getDarkMode() -> Bool {
         let defaults = UserDefaults.standard
         return defaults.bool(forKey: Constants.DARK_MODE)
+    }
+    
+    func setLanguage(language: String) {
+        let defaults = UserDefaults.standard
+        defaults.set(language, forKey: Constants.LANGUAGE)
+    }
+    func getLanguage() -> String {
+        let defaults = UserDefaults.standard
+        return defaults.string(forKey: Constants.LANGUAGE) ?? SelectedLanguage.english.rawValue
     }
 }

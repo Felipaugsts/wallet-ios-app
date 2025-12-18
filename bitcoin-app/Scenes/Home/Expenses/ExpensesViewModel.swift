@@ -11,24 +11,72 @@ import Foundation
 import SwiftUI
 
 class ExpensesViewModel: ObservableObject {
-    @Published var transactionsType: TransactionType = .expense
-    @Published var isLoading = true
-    @Published var tabItems: [TabItem] = []
-    @Published var showingAddSubscription = false
-    @Published var datasource: [ExpenseModel] = []
+    @Published var transactionsType: TransactionType
+    @Published var isLoading: Bool
+    @Published var showingAddSubscription: Bool
+    @Published var datasource: [ExpenseModel] { didSet { filteredDatasource = datasource} }
+    @Published var filteredDatasource: [ExpenseModel] = []
     @Published var editValue: ExpenseModel?
-    @Published var loading: Bool = true
+    @Published var loading: Bool
+    @Published var showAlert: Bool
+    @Published var selectedItemToDelete: ExpenseModel?
+    @Published var selectedCategory: String = "" { didSet { handleFilter() } }
+    
+    func handleFilter() {
+        guard !selectedCategory.isEmpty else {
+            filteredDatasource = datasource
+            return
+        }
+        
+        filteredDatasource = datasource.filter { item in
+            item.selectedCategoryId == selectedCategory
+        }
+    }
+    
+    init(transactionsType: TransactionType,
+         isLoading: Bool = true,
+         showingAddSubscription: Bool = false,
+         datasource: [ExpenseModel],
+         editValue: ExpenseModel? = nil,
+         loading: Bool,
+         showAlert: Bool = false) {
+        self.transactionsType = transactionsType
+        self.isLoading = isLoading
+        self.showingAddSubscription = showingAddSubscription
+        self.datasource = datasource
+        self.editValue = editValue
+        self.loading = loading
+        self.showAlert = showAlert
+        
+        self.selectedCategory = ""
+    }
     
     lazy var categories: [Category] = {
-           let allCategories: [Category] = RemoteConfigManager.shared.model(model: [Category].self, for: .wpCategories) ?? []
-           
-           return allCategories.filter { $0.isExpense == (transactionsType != .expense) }
-       }()
-    
-    func deleteTransaction(id: String) {
-        let collection = transactionsType == .expense ? "expenses" : "incomes"
+        let allCategories: [Category] = RemoteConfigManager.shared.model(model: [Category].self, for: .wpCategories) ?? []
         
-        FirestoreUserService().deleteDocument(collection: collection, documentId: id) { result in
+        return allCategories.filter { item in
+            datasource.contains(where: { $0.selectedCategoryId == item.id })
+        }
+    }()
+    
+    func handleDeleteAction(item: ExpenseModel) {
+        if item.isRecurring {
+            showAlert = true
+            selectedItemToDelete = item
+            return
+        }
+        
+        deleteTransaction(id: item.id)
+    }
+    
+    func deleteTransaction(id: String, collection: String? = nil) {
+        var collectionValue = collection
+        
+        if collection == nil {
+            collectionValue = transactionsType == .expense ? "expenses" : "incomes"
+        }
+        
+        FirestoreUserService().deleteDocument(collection: collectionValue ?? "", documentId: id) { result in
             switch result {
             case .success(_):
                 withAnimation {
@@ -47,15 +95,41 @@ class ExpensesViewModel: ObservableObject {
     }
 }
 
-extension ExpensesViewModel: TransactionDelegate {
+extension ExpensesViewModel: @preconcurrency TransactionDelegate {
+    @MainActor
     func updateTransactions(transaction: ExpenseModel) {
         withAnimation(.spring) {
-            if let index = datasource.firstIndex(where: { $0.id == transaction.id }) {
+            if let firstDate = datasource.first?.dueDate, !isSameMonthAndYear(transaction.dueDate, firstDate) {
+                _ = removeItem(transaction: transaction)
+                return
+            }
+            print("transaction updating", transaction)
+            if !transaction.transactionID.isEmpty, let index = datasource.firstIndex(where: { $0.transactionID == transaction.transactionID }) {
                 datasource[index] = transaction
             } else {
                 datasource.append(transaction)
             }
+            
+            filteredDatasource = datasource
         }
+    }
+    
+    func removeItem(transaction: ExpenseModel) -> Bool {
+        if let index = datasource.firstIndex(where: { $0.id == transaction.id }) {
+            datasource.remove(at: index)
+            return true
+        }
+        return false
+    }
+    
+    private func isSameMonthAndYear(_ date1: Date, _ date2: Date) -> Bool {
+        let calendar = Calendar.current
+        let month1 = calendar.component(.month, from: date1)
+        let year1 = calendar.component(.year, from: date1)
+        let month2 = calendar.component(.month, from: date2)
+        let year2 = calendar.component(.year, from: date2)
+        
+        return month1 == month2 && year1 == year2
     }
 }
 

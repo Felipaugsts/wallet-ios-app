@@ -12,15 +12,19 @@ import SwiftUI
 class AddTransactionViewModel: ObservableObject {
     
     // MARK: - Form State
-    @Published var transactionType: TransactionType = .expense
+    @Published var transactionType: TransactionType
     @Published var isRecurring: Bool = false
-    @Published var recurrenceMonths: Int = 2
+    @Published var recurrenceMonths: Int = 0
     @Published var shouldRemind: Bool = false
     @Published var value: Double = 0
     @Published var reminderDays: Int = 3
     @Published var shouldUpdateTransactions: Bool = false
-    @Published var transaction: ExpenseModel = ExpenseModel(transactionID: "")
+    @Published var transaction: ExpenseModel = ExpenseModel(transactionID: "", dueDate: Date())
     @Published var isLoading: Bool = false
+    
+    init(transactionType: TransactionType) {
+        self.transactionType = transactionType
+    }
     
     // MARK: - Computed Properties
     var currencyColor: Color {
@@ -32,14 +36,14 @@ class AddTransactionViewModel: ObservableObject {
     }
     
     // MARK: - Data Source
-    let expenseCategories: [Category] = {
+    lazy var expenseCategories: [Category] = {
         RemoteConfigManager.shared.model(model: [Category].self, for: .wpCategories) ?? [].filter { $0.isExpense == true }
     }()
     
     lazy var categories: [Category] = {
         let allCategories: [Category] = RemoteConfigManager.shared.model(model: [Category].self, for: .wpCategories) ?? []
         
-        return allCategories.filter { $0.isExpense == (transactionType != .expense) }
+        return allCategories.filter { $0.isExpense == (transactionType == .expense) }
     }()
     
     // MARK: - Actions
@@ -48,14 +52,16 @@ class AddTransactionViewModel: ObservableObject {
         guard let transaction else { return }
         
         self.transaction = transaction
+        isRecurring = transaction.isRecurring
         transactionType = transaction.type
         
     }
     
+    @MainActor
     func saveTransaction() {
         guard isFormValid else { return }
         isLoading = true
-
+        
         let calendar = Calendar.current
         let month = calendar.component(.month, from: transaction.dueDate)
         let year = calendar.component(.year, from: transaction.dueDate)
@@ -70,71 +76,71 @@ class AddTransactionViewModel: ObservableObject {
             "isRecurring": isRecurring,
             "recurrenceMonths": recurrenceMonths,
             "month": month,
-            "icon": categories.first(where: { $0.name == transaction.selectedCategoryId }) ?? "",
+            "icon": categories.first(where: { $0.id == transaction.selectedCategoryId })?.icon ?? "",
             "year": year
         ]
-        if !transaction.transactionID.isEmpty{
+        
+        if !transaction.transactionID.isEmpty, !isRecurring {
             updateExpense(data: data)
             return
         }
         
-        if transactionType == .expense {
-            saveExpense(data: data)
+        if isRecurring {
+            FirestoreUserService().createRecuringTransaction(data: data) { results in
+                switch results {
+                case .success(_):
+                    self.shouldUpdateTransactions = true
+                    
+                case .failure(let failure):
+                    print("failure", failure)
+                }
+            }
+            
             return
         }
         
-        if transactionType == .income {
-            saveIncome(data: data)
-            return
-        }
+        saveTransaction(data: data, type: transactionType)
     }
-    
-    func saveIncome(data: [String: Any]) {
-        FirestoreUserService().createIncome(data: data) { results in
-            switch results {
-            case .success(let success):
-                print("success", success)
-                self.shouldUpdateTransactions = true
-            case .failure(let failure):
-                print(failure)
-            }
-        }
-    }
-    
+ 
     func updateExpense(data: [String: Any]) {
         let collection = transactionType == .expense ? "expenses" : "incomes"
         FirestoreUserService().updateDocument(collection: collection,
-                                              documentId: transaction.id,
+                                              documentId: transaction.transactionID,
                                               updates: data) { results in
             switch results {
             case .success(_):
                 self.shouldUpdateTransactions = true
-            case .failure(_):
-                break
+                
+            case .failure(let error):
+                print("updateExpense error:", error)
             }
         }
     }
     
-    func saveExpense(data: [String: Any]) {
-        FirestoreUserService().createExpense(data: data) { results in
+    @MainActor
+    func saveTransaction(data: [String: Any], type: TransactionType) {
+        FirestoreUserService().createTransaction(data: data, type: type) { results in
             switch results {
-            case .success( _):
-                print("success")
+            case .success(let id):
+                if !id.isEmpty {
+                    self.transaction.updateId(id)
+                }
                 self.shouldUpdateTransactions = true
-            case .failure(let failure):
-                print(failure)
+                
+            case .failure(let error):
+                print("saveTransaction error:", error)
             }
         }
     }
 }
 
-enum TransactionType: String, CaseIterable {
+enum TransactionType: String, CaseIterable, Codable {
     case expense = "Gasto"
     case income = "Receita"
 }
 
 // O objeto final que será salvo
-struct TransactionTypeModel {
+struct TransactionTypeModel: Codable {
     let transactionId: String
     let type: TransactionType
     let name: String

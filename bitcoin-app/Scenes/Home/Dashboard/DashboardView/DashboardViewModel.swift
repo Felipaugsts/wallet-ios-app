@@ -6,27 +6,26 @@
 //
 
 import Foundation
-import Combine // Necessário para ObservableObject e @Published
+import SwiftUI
 
-class DashboardViewModel: ObservableObject {
+class DashboardViewModel: ObservableObject, Observable {
     // MARK: - Published Properties
     // @Published automaticamente notifica a View quando esses valores mudam.
-    @Published var currentDate: Date = Date.from(year: 2025, month: 12, day: 1) {
-        didSet { print("")}
-    }
+    @Published var currentDate: Date = Date()
     @Published var presentSheed = false
     @Published var preSelectedCategoryId: String = ""
     @Published var preSelectedTransactionType: TransactionType = .income
     @Published var overView: OverviewResult?
     @Published var isLoading: Bool = true
+    @Published var disableNextMonthButton: Bool = false
     
     let user = UserRepository.shared.loadUser()
     // MARK: - Computed Properties
     var previousMonthData: FinancialData {
-//        let previousDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
+        //        let previousDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
         return FinancialData(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [])
     }
-
+    
     var balance: Double {
         Double(Int(overView?.incomeTotal ?? 0) - Int(overView?.expenseTotal ?? 0))
     }
@@ -34,16 +33,40 @@ class DashboardViewModel: ObservableObject {
     var isBalancePositive: Bool {
         balance >= 0
     }
-
+    
     // MARK: - Formatters
     private let currencyFormatter: NumberFormatter = { let f = NumberFormatter(); f.numberStyle = .currency; f.locale = Locale(identifier: "pt_BR"); return f }()
     let monthFormatter: DateFormatter = { let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; f.locale = Locale(identifier: "pt_BR"); return f }()
     let dayMonthFormatter: DateFormatter = { let f = DateFormatter(); f.dateFormat = "dd/MM"; return f }()
     
     // MARK: - Public Methods (Actions)
+    
     func navigateMonth(by value: Int) {
         guard let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentDate) else { return }
-        currentDate = newDate
+        let month = getMonthAsInt(from: newDate)
+        
+        let currentMonth: Int = {
+            let month = getMonthAsInt(from: Date())
+            if month == 12 { return 1}
+            
+            return month
+        }()
+        isLoading = true
+        
+        DispatchQueue.main.async {
+            self.disableNextMonthButton = false
+            self.currentDate = newDate
+            self.disableNextMonthButton = (month + 1 == currentMonth + 1)
+            self.fetchSummary()
+        }
+    }
+    
+    func getMonthAsInt(from date: Date) -> Int {
+        Calendar.current.component(.month, from: date)
+    }
+    
+    func getYearAsInt(from date: Date) -> Int {
+        Calendar.current.component(.year, from: date)
     }
     
     // MARK: - Public Methods (Formatting & Calculations)
@@ -63,26 +86,37 @@ class DashboardViewModel: ObservableObject {
         presentSheed = true
     }
     
+    @MainActor
     func fetchSummary() {
         isLoading = true
-        FirestoreUserService().getUserOverview(month: 12,
-                                               year: 2025) { result in
-            switch result {
-            case .success(let response):
-                self.overView = response
-                
-            case .failure(let failure):
-                print("Falha firebase", failure)
+        let year = getYearAsInt(from: currentDate)
+        let month = getMonthAsInt(from: currentDate)
+        
+        Task {
+            do {
+                let transactions = try await FirestoreUserService().getUserOverview(month: month, year: year)
+                overView = transactions
+            } catch {
+                print("Error fetching summary: \(error.localizedDescription)")
             }
             
-            self.isLoading = false
+            isLoading = false
         }
     }
 }
 
 extension FinancialData {
-    // Um estado vazio para inicialização segura.
     static var empty: FinancialData {
         .init(expenses: 0, incomes: 0, invested: 0, dividends: 0, creditCards: [])
+    }
+}
+
+extension Date {
+    func getMonthAsInt() -> Int {
+        Calendar.current.component(.month, from: self)
+    }
+    
+    func getYearAsInt() -> Int {
+        Calendar.current.component(.year, from: self)
     }
 }

@@ -13,8 +13,20 @@ struct AddTransactionSheet: View {
     var preSelectedCategoryId: String
     weak var delegate: TransactionDelegate?
     
-    @StateObject private var viewModel = AddTransactionViewModel()
+    @StateObject private var viewModel: AddTransactionViewModel
     @Environment(\.dismiss) private var dismiss
+    
+    init(editTransaction: ExpenseModel?,
+         preSelectedValueType: TransactionType,
+         preSelectedCategoryId: String,
+         delegate: TransactionDelegate?) {
+        self.editTransaction = editTransaction
+        self.preSelectedValueType = preSelectedValueType
+        self.preSelectedCategoryId = preSelectedCategoryId
+        self.delegate = delegate
+        
+        _viewModel = StateObject(wrappedValue: AddTransactionViewModel(transactionType: preSelectedValueType))
+    }
     
     private static let currencyFormatter: NumberFormatter = {
           let formatter = NumberFormatter()
@@ -28,17 +40,6 @@ struct AddTransactionSheet: View {
     var body: some View {
         NavigationView {
             Form {
-                // Seletor de Tipo (Gasto vs Receita)
-                Section {
-                    Picker("Tipo", selection: $viewModel.transactionType) {
-                        ForEach(TransactionType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-                
-                // Campo de Valor
                 Section {
                     HStack {
                         Text(Self.currencyFormatter.currencySymbol)
@@ -48,17 +49,19 @@ struct AddTransactionSheet: View {
                             .font(.system(size: 40, weight: .bold, design: .rounded))
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
+                            .submitLabel(.done)
+                            .onSubmit {
+                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                }
                     }
                     .foregroundColor(viewModel.currencyColor)
                 }
                 
-                // Detalhes Principais
                 Section(header: Text("Detalhes")) {
                     TextField("Nome (ex: Conta de Luz)", text: $viewModel.transaction.name)
                     TextField("Descrição (opcional)", text: $viewModel.transaction.description)
                 }
                 
-                // Categorias e Data
                 Section {
                     Picker("Categoria", selection: $viewModel.transaction.selectedCategoryId) {
                         ForEach(viewModel.categories) { category in
@@ -76,21 +79,8 @@ struct AddTransactionSheet: View {
                     )
                 }
                 
-                // Recorrência e Lembretes
                 Section(header: Text("Opções Adicionais")) {
                     Toggle("É uma transação recorrente?", isOn: $viewModel.isRecurring.animation())
-                    
-                    if viewModel.isRecurring {
-                        Stepper("Repetir por \(viewModel.recurrenceMonths) meses", value: $viewModel.recurrenceMonths, in: 2...60)
-                    }
-                    
-                    if viewModel.transactionType == .expense {
-                        Toggle("Lembrar-me do vencimento", isOn: $viewModel.shouldRemind.animation())
-                        
-                        if viewModel.shouldRemind {
-                            Stepper("Lembrar \(viewModel.reminderDays) dias antes", value: $viewModel.reminderDays, in: 1...30)
-                        }
-                    }
                 }
             }
             .shimmer(when: $viewModel.isLoading)

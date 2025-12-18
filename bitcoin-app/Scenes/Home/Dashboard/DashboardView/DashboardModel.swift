@@ -21,19 +21,21 @@ struct ExpenseModel: Identifiable, Hashable {
     var selectedCategoryId: String
     var isRecurring: Bool
     var recurrenceMonths: Int
+    var created_at: Date?
     
     init(transactionID: String,
-          type: TransactionType = .expense,
-          name: String = "Nova Transação",
-          icon: String = "dollarsign.circle",
-          description: String = "",
-          color: Color = .blue,
-          valueBRL: String = "0",
-          dueDate: Date = Date(),
-          isPaid: Bool = false,
-          selectedCategoryId: String = "",
-          isRecurring: Bool = false,
-          recurrenceMonths: Int = 1) {
+         type: TransactionType = .expense,
+         name: String = "",
+         icon: String = "dollarsign.circle",
+         description: String = "",
+         color: Color = .blue,
+         valueBRL: String = "",
+         dueDate: Date = Date(),
+         isPaid: Bool = false,
+         selectedCategoryId: String = "",
+         isRecurring: Bool = false,
+         recurrenceMonths: Int = 1,
+         created_at: Date? = nil) {
         self.transactionID = transactionID
         self.type = type
         self.name = name
@@ -46,6 +48,11 @@ struct ExpenseModel: Identifiable, Hashable {
         self.selectedCategoryId = selectedCategoryId
         self.isRecurring = isRecurring
         self.recurrenceMonths = recurrenceMonths
+        self.created_at = created_at
+    }
+    
+    mutating func updateId(_ newId: String) {
+        self.transactionID = newId
     }
 }
 

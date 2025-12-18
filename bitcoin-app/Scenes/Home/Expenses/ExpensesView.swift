@@ -10,8 +10,19 @@ import SwiftUI
 struct SubscriptionManagerView: View {
     var transactionsType: TransactionType
     var datasource: [ExpenseModel]?
-    @State private var selectedCategory: Category?
-    @StateObject var viewModel = ExpensesViewModel()
+    @StateObject var viewModel: ExpensesViewModel
+    
+    init(transactionsType: TransactionType,
+         datasource: [ExpenseModel]? = nil) {
+        self.transactionsType = transactionsType
+        self.datasource = datasource
+        
+        _viewModel = StateObject(wrappedValue: ExpensesViewModel(
+            transactionsType: transactionsType,
+            datasource:  datasource ?? [],
+            loading: false)
+        )
+    }
     
     var totalMonthly: Double {
         viewModel.datasource.reduce(0) { $0 + (Double($1.valueBRL) ?? 0) }
@@ -20,20 +31,15 @@ struct SubscriptionManagerView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                MonthlySummaryCard(totalMonthly: totalMonthly,
-                                   transactionsType: viewModel.transactionsType,
-                                   categories: viewModel.categories,
-                                   selectedCategory: $selectedCategory)
+                MonthlySummaryCard(totalMonthly: totalMonthly)
                 
-                SubscriptionList(subscriptions: filteredSubscriptions) { id in
-                    viewModel.deleteTransaction(id: id)
-                } edit: { transaction in
-                    viewModel.editTransaction(value: transaction)
-                }
+                SubscriptionList()
             }
             .padding(.vertical)
             .shimmer(when: $viewModel.loading)
         }
+        .environmentObject(viewModel)
+        .scrollBounceBehavior(.basedOnSize)
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle(viewModel.isLoading ? "" : viewModel.transactionsType == .expense ? "Expenses" : "Income")
         .toolbar {
@@ -45,11 +51,6 @@ struct SubscriptionManagerView: View {
                 }
             }
         }
-        .task {
-            viewModel.transactionsType = transactionsType
-            viewModel.datasource = datasource ?? []
-            viewModel.loading = false
-        }
         .fullScreenCover(isPresented: $viewModel.showingAddSubscription) {
             viewModel.editValue = nil
         } content: {
@@ -59,40 +60,37 @@ struct SubscriptionManagerView: View {
                                 delegate: viewModel)
         }
     }
-    
-    var filteredSubscriptions: [ExpenseModel] {
-        guard let category = selectedCategory else { return viewModel.datasource}
-        return viewModel.datasource.filter { $0.type.rawValue == category.name }
-    }
 }
 
 struct MonthlySummaryCard: View {
     var totalMonthly: Double
-    var transactionsType: TransactionType
-    var categories: [Category]
-    @Binding var selectedCategory: Category?
-
+    @EnvironmentObject var viewModel: ExpensesViewModel
+    
     var body: some View {
         VStack(spacing: 16) {
             HStack {
                 VStack(alignment: .leading) {
-                    Text("Monthly Total")
+                    Text("montlyTotalAmount".localized)
                         .font(.subheadline)
                         .foregroundColor(ColorPalette.light.opacity(0.8))
                     Text("$\(totalMonthly, specifier: "%.2f")")
                         .font(.system(size: 34, weight: .bold))
                 }
                 Spacer()
-                SummaryCircle(transactionsType: transactionsType)
+                SummaryCircle(transactionsType: viewModel.transactionsType)
             }
             
-            // Category pills
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(categories) { category in
-                        CategoryPillSub(category: category, isSelected: selectedCategory == category) {
+                    ForEach(viewModel.categories) { category in
+                        CategoryPillSub(category: category, isSelected: viewModel.selectedCategory == category.id) {
                             withAnimation {
-                                selectedCategory = selectedCategory == category ? nil : category
+                                if viewModel.selectedCategory == category.id {
+                                    viewModel.selectedCategory = ""
+                                    return
+                                }
+                                
+                                viewModel.selectedCategory = category.id
                             }
                         }
                     }
@@ -103,7 +101,7 @@ struct MonthlySummaryCard: View {
         .padding()
         .background(ColorPalette.backgroundView)
         .cornerRadius(16)
-        .shadow(radius: 2)
+        .shadow(color: .black.opacity(0.105), radius: 2)
         .padding(.horizontal)
     }
 }
@@ -121,9 +119,9 @@ struct SummaryCircle: View {
                 .trim(from: 0, to: 0.7)
                 .stroke(transactionsType == .expense ? Color.red : Color.green,
                         style: StrokeStyle(
-                    lineWidth: 4,
-                    lineCap: .round
-                ))
+                            lineWidth: 4,
+                            lineCap: .round
+                        ))
                 .rotationEffect(.degrees(-90))
         }
         .frame(width: 50, height: 50)
@@ -131,36 +129,59 @@ struct SummaryCircle: View {
 }
 
 struct SubscriptionList: View {
-    var subscriptions: [ExpenseModel]
-    var delete: (_ id: String) -> Void
-    var edit: (_ transaction: ExpenseModel) -> Void
+    @EnvironmentObject var viewModel: ExpensesViewModel
     
     var body: some View {
         VStack(spacing: 16) {
-            ForEach(subscriptions) { subscription in
+            
+            if viewModel.datasource.isEmpty {
+                
+                ContentUnavailableView {
+                    Label(TextValue.emptyValuesTitle.localized, systemImage: "pencil.and.list.clipboard")
+                } description: {
+                    Text(TextValue.addExpense.localized)
+                } actions: {
+                    Button(TextValue.addExpense.localized) {
+                        viewModel.showingAddSubscription = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+            
+            ForEach(viewModel.filteredDatasource) { item in
                 Menu {
                     Button(action: {
-                        edit(subscription)
+                        viewModel.editTransaction(value: item)
                     }) {
-                        Label("Edit", systemImage: "pencil")
+                        Label(TextValue.edit.localized, systemImage: "pencil")
                     }
                     
                     Button(role: .destructive, action: {
-                        delete(subscription.id)
+                        viewModel.handleDeleteAction(item: item)
                     }) {
-                        Label("Delete", systemImage: "trash")
+                        Label(TextValue.delete.localized, systemImage: "trash")
                     }
                 } label: {
-                    SubscriptionRow(subscription: subscription)
+                    SubscriptionRow(subscription: item)
                 }
             }
         }
         .padding(.horizontal)
+        .alert(TextValue.confirmDeleteTitle.localized, isPresented: $viewModel.showAlert) {
+            Button(TextValue.confirmDeleteYes.localized) {
+                if let itemToDelete = viewModel.selectedItemToDelete {
+                    viewModel.deleteTransaction(id: itemToDelete.id, collection: itemToDelete.isRecurring ? "recurring" : nil)
+                }
+            }
+            
+            Button(TextValue.confirmDeleteCancel.localized, role: .cancel) { }
+        }
     }
 }
 
 struct SubscriptionRow: View {
     var subscription: ExpenseModel
+    @EnvironmentObject var viewModel: ExpensesViewModel
     
     var body: some View {
         HStack(spacing: 16) {
@@ -183,7 +204,7 @@ struct SubscriptionRow: View {
                     .font(.caption)
                     .foregroundColor(ColorPalette.light.opacity(0.8))
                 
-                Text(subscription.type.rawValue)
+                Text(viewModel.categories.first(where: {$0.icon == subscription.icon})?.name ?? "")
                     .font(.caption)
                     .foregroundColor(ColorPalette.light.opacity(0.8))
             }
@@ -196,7 +217,7 @@ struct SubscriptionRow: View {
                     .foregroundColor(ColorPalette.textColor)
                     .bold()
                 
-                Text("Monthly")
+                Text(TextValue.monthly.localized)
                     .font(.caption)
                     .foregroundColor(ColorPalette.light.opacity(0.8))
             }
@@ -215,7 +236,7 @@ struct CategoryPillSub: View {
     
     var body: some View {
         Button(action: action) {
-            Text(category.name)
+            Text(category.id.localized)
                 .font(.subheadline)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)

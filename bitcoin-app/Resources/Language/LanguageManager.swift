@@ -18,6 +18,7 @@ class LocalizationManager: ObservableObject {
 
     func saveLanguage(_ language: SelectedLanguage) {
         self.language = language
+        UserDefaultsUtils.shared.setLanguage(language: language.rawValue)
     }
 }
 
@@ -53,4 +54,14 @@ struct TextValue {
     static let transactionHistory = "transaction_history"
     static let dashboardTitle = "dashboardTitle"
     static let settingsTitle = "settingsTitle"
+    static let startAddingExpense = "startAddingExpense"
+    static let addExpense = "addExpense"
+    static let edit = "edit"
+    static let delete = "delete"
+    static let confirmDeleteTitle = "confirmDeleteTitle"
+    static let confirmDeleteYes = "confirmDeleteYes"
+    static let confirmDeleteNo = "confirmDeleteNo"
+    static let confirmDeleteCancel = "confirmDeleteCancel"
+    static let monthly = "monthly"
+    static let emptyValuesTitle = "emptyValuesTitle"
 }

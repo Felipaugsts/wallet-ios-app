@@ -20,6 +20,7 @@ struct OptionModel: Codable {
     let icon: String
     let color: String
     let enabled: Bool
+    let visible: Bool
     let type: switchTypes?
     let options: [LanguageOptionModel]? // Para opções de idioma, se houver
 }
@@ -55,6 +56,7 @@ extension SettingsResponse {
                         icon: "bell.fill",
                         color: "green",
                         enabled: false,
+                        visible: true,
                         type: .toggle,
                         options: nil
                     ),
@@ -64,6 +66,7 @@ extension SettingsResponse {
                         icon: "bitcoinsign.bank.building.fill",
                         color: "yellow",
                         enabled: false,
+                        visible: true,
                         type: .toggle,
                         options: nil
                     ),
@@ -73,6 +76,7 @@ extension SettingsResponse {
                         icon: "moon.fill",
                         color: "indigo",
                         enabled: false,
+                        visible: true,
                         type: .toggle,
                         options: nil
                     ),
@@ -82,6 +86,7 @@ extension SettingsResponse {
                         icon: "dollarsign.circle.fill",
                         color: "green",
                         enabled: false,
+                        visible: true,
                         type: .picker,
                         options: []
                     )
@@ -97,6 +102,7 @@ extension SettingsResponse {
                         icon: "faceid",
                         color: "blue",
                         enabled: false,
+                        visible: true,
                         type: .toggle,
                         options: nil
                     ),
@@ -106,6 +112,7 @@ extension SettingsResponse {
                         icon: "lock.fill",
                         color: "red",
                         enabled: false,
+                        visible: true,
                         type: .navigation,
                         options: nil
                     ),
@@ -115,6 +122,7 @@ extension SettingsResponse {
                         icon: "hand.raised.fill",
                         color: "indigo",
                         enabled: false,
+                        visible: true,
                         type: .navigation,
                         options: nil
                     )

@@ -9,6 +9,10 @@ import Foundation
 import FirebaseFirestore
 import SwiftUICore
 
+struct LoadedOverview {
+    var overview: OverviewResult
+    var date: Date
+}
 
 struct OverviewResult {
     let incomeTotal: Double
@@ -24,6 +28,12 @@ struct OverviewResult {
     
     var expensesTransactions: [ExpenseModel]
     var incomeTransactions: [ExpenseModel]
+    var recuringTransactions: [ExpenseModel]
+}
+
+struct Transactions {
+    var expensesTransactions: [ExpenseModel]
+    var incomeTransactions: [ExpenseModel]
 }
 
 final class FirestoreUserService {
@@ -36,96 +46,84 @@ final class FirestoreUserService {
     
     func getUserOverview(
         month: Int,
-        year: Int,
-        completion: @escaping (Result<OverviewResult, Error>) -> Void
-    ) {
+        year: Int
+    ) async throws -> OverviewResult {
         let userId = UserRepository.shared.loadUser()?.id ?? ""
-        func previousMonth(month: Int, year: Int) -> (Int, Int) {
-            if month == 1 { return (12, year - 1) }
-            return (month - 1, year)
-        }
         
         var expensesTransactions: [ExpenseModel] = []
         var incomeTransactions: [ExpenseModel] = []
+        var recuringTransactions: [ExpenseModel] = []
         
-        func getTotal(
-            collection: String,
-            month: Int,
-            year: Int,
-            completion: @escaping (Double) -> Void
-        ) {
-            db.collection(collection)
+        func getTotal(collection: String, month: Int, year: Int) async throws -> Double {
+            let snap = try await db.collection(collection)
                 .whereField("user_id", isEqualTo: userId)
                 .whereField("month", isEqualTo: month)
                 .whereField("year", isEqualTo: year)
-                .getDocuments { snap, _ in
-                    if let documents = snap?.documents {
-                        for document in documents {
-                            let data = document.data()
-                            let eventDate = data["date"] as? Timestamp
-                            let date = eventDate?.dateValue() ?? Date()
-                            
-                            if Calendar.current.component(.month, from: date) != month {
-                                return
-                            }
-                            
-                            if let transaction = self.createExpenseModel(from: data, documentId: document.documentID) {
-                                if collection == "expenses" {
-                                    expensesTransactions.append(transaction)
-                                } else {
-                                    incomeTransactions.append(transaction)
-                                }
-                            }
-                        }
-                    }
-                    
-                    let total = snap?.documents.reduce(0.0) { (result, document) in
-                        let data = document.data()
-                        if let amountString = data["amount"] as? String,
-                           let amountDouble = Double(amountString) {
-                            return result + amountDouble
-                        }
-                        return result
-                    } ?? 0.0
-                    completion(total)
-                }
+                .getDocuments()
+            
+            let transactions = snap.documents.compactMap { document -> ExpenseModel? in
+                let data = document.data()
+                return self.createExpenseModel(from: data, documentId: document.documentID)
+            }
+            
+            if collection == "expenses" {
+                expensesTransactions.append(contentsOf: transactions)
+                return self.totalAmount(for: expensesTransactions)
+            }
+            
+            incomeTransactions.append(contentsOf: transactions)
+            
+            return self.totalAmount(for: incomeTransactions)
         }
         
-        let group = DispatchGroup()
+        // Fetch recurring transactions first
+        let transaction = try await fetchRecuringTransactions()
         
-        var incomeCurrent = 0.0
-        var expenseCurrent = 0.0
-        
-        group.enter()
-        getTotal(collection: "incomes", month: month, year: year) {
-            incomeCurrent = $0
-            group.leave()
+        let dateComponents = DateComponents(year: year, month: month, day: 30)
+        guard let date = Calendar.current.date(from: dateComponents) else {
+            throw NSError(domain: "InvalidDateError", code: 0, userInfo: nil)
         }
         
-        group.enter()
-        getTotal(collection: "expenses", month: month, year: year) {
-            expenseCurrent = $0
-            group.leave()
+        let newExpenses = transaction.expensesTransactions.filter { newExpense in
+            newExpense.dueDate < date && !expensesTransactions.contains(where: { $0.id == newExpense.id })
         }
         
-        group.notify(queue: .main) {
-            
-            let balanceCurrent = incomeCurrent - expenseCurrent
-            
-            let result = OverviewResult(
-                incomeTotal: incomeCurrent,
-                expenseTotal: expenseCurrent,
-                balance: balanceCurrent,
-                incomeChangePercent: 0,
-                expenseChangePercent: 0,
-                balanceChangePercent: 0,
-                totalInvestedValue: 0,
-                currentMonthDividends: 0,
-                expensesTransactions: expensesTransactions,
-                incomeTransactions: incomeTransactions
-            )
-            
-            completion(.success(result))
+        let newIncome = transaction.incomeTransactions.filter { newIncome in
+            newIncome.dueDate < date && !incomeTransactions.contains(where: { $0.id == newIncome.id })
+        }
+
+        expensesTransactions.append(contentsOf: newExpenses)
+        incomeTransactions.append(contentsOf: newIncome)
+        
+        recuringTransactions = transaction.expensesTransactions + transaction.incomeTransactions
+
+        // Fetch totals for current month income and expenses
+        let incomeCurrent = try await getTotal(collection: "incomes", month: month, year: year)
+        let expenseCurrent = try await getTotal(collection: "expenses", month: month, year: year)
+
+        let balanceCurrent = incomeCurrent - expenseCurrent
+        
+        return OverviewResult(
+            incomeTotal: incomeCurrent,
+            expenseTotal: expenseCurrent,
+            balance: balanceCurrent,
+            incomeChangePercent: 0,
+            expenseChangePercent: 0,
+            balanceChangePercent: 0,
+            totalInvestedValue: 0,
+            currentMonthDividends: 0,
+            expensesTransactions: expensesTransactions,
+            incomeTransactions: incomeTransactions,
+            recuringTransactions: recuringTransactions
+        )
+    }
+    
+    func totalAmount(for transactions: [ExpenseModel]) -> Double {
+        return transactions.reduce(0.0) { (result, val) in
+            if let amountDouble = Double(val.valueBRL) {
+                return result + amountDouble
+            }
+            return result
         }
     }
     
@@ -161,8 +159,9 @@ final class FirestoreUserService {
     
     // MARK: - Create Expense
     
-    func createExpense(
+    func createTransaction(
         data: [String: Any],
+        type: TransactionType,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
         
@@ -171,34 +170,66 @@ final class FirestoreUserService {
         payload["updated_at"] = Timestamp(date: Date())
         payload["user_id"] = UserRepository.shared.loadUser()?.id ?? ""
         
-        db.collection("expenses").addDocument(data: payload) { error in
+        var documentReference: DocumentReference?
+        
+        documentReference = db.collection(type == .expense ? "expenses" : "incomes").addDocument(data: payload) { error in
             if let error = error {
+                print("\(type.rawValue) failure creating ", error.localizedDescription)
                 completion(.failure(error))
+            } else if let documentId = documentReference?.documentID {
+                print("\(type.rawValue) created successfully: ", payload)
+                completion(.success(documentId))
             } else {
-                completion(.success("expense_created"))
+                completion(.success(""))
             }
         }
     }
     
-    // MARK: - Create Income
-    
-    func createIncome(
+    func createRecuringTransaction(
         data: [String: Any],
-        completion: @escaping (Result<String, Error>) -> Void
+        completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        
         var payload = data
         payload["created_at"] = Timestamp(date: Date())
         payload["updated_at"] = Timestamp(date: Date())
         payload["user_id"] = UserRepository.shared.loadUser()?.id ?? ""
         
-        db.collection("incomes").addDocument(data: payload) { error in
+        db.collection("recurring").addDocument(data: payload) { error in
             if let error = error {
+                
                 completion(.failure(error))
             } else {
-                completion(.success("income_created"))
+                
+                completion(.success(()))
             }
         }
+    }
+    
+    func fetchRecuringTransactions() async throws -> Transactions {
+        var transactions = Transactions(expensesTransactions: [], incomeTransactions: [])
+        
+        let snap = try await db.collection("recurring")
+            .whereField("user_id", isEqualTo: UserRepository.shared.loadUser()?.id ?? "")
+            .getDocuments()
+        
+        if snap.documents.isEmpty {
+            print("Transactions are empty")
+            return transactions
+        }
+        
+        for document in snap.documents {
+            let data = document.data()
+            
+            if let transaction = self.createExpenseModel(from: data, documentId: document.documentID) {
+                if transaction.type == .expense {
+                    transactions.expensesTransactions.append(transaction)
+                } else {
+                    transactions.incomeTransactions.append(transaction)
+                }
+            }
+        }
+        
+        return transactions
     }
     
     // MARK: - Update Expense or Income
@@ -217,8 +248,10 @@ final class FirestoreUserService {
             .document(documentId)
             .updateData(payload) { error in
                 if let error = error {
+                    print("failure updating: ", error.localizedDescription)
                     completion(.failure(error))
                 } else {
+                    print("updated successfully: ", payload)
                     completion(.success(()))
                 }
             }

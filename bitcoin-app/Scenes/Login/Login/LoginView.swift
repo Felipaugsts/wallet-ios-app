@@ -164,17 +164,8 @@ struct KnownUserView: View {
                     SocialLoginButton(title: "Continue with Apple", iconName: "apple.logo", action: authService.loginWithApple, isApple: true)
                 }
                 .padding(.horizontal, 30)
+                .padding(.bottom, 40)
             }
-            
-            Divider()
-            
-            // Opção para trocar de usuário/outras opções
-            Button(action: authService.switchToInitialLogin) {
-                Text("Not \(userName)? / Other Options")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            .padding(.bottom, 20)
         }
     }
 }

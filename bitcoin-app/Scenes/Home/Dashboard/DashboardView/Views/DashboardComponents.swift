@@ -9,15 +9,31 @@ import SwiftUI
 
 struct HeaderView: View {
     let month: String
-    let onNavigate: (Int) -> Void
+    @EnvironmentObject var viewModel: DashboardViewModel
     
     var body: some View {
         HStack {
-            Button(action: { onNavigate(-1) }) { Image(systemName: "chevron.left.circle.fill") }
+            Button(action: {
+                viewModel.navigateMonth(by: -1)
+            }
+            ) {
+                Image(systemName: "chevron.left.circle.fill")
+            }
+            
             Spacer()
+            
             Text(month.capitalized).font(.headline).fontWeight(.semibold)
+            
             Spacer()
-            Button(action: { onNavigate(1) }) { Image(systemName: "chevron.right.circle.fill") }
+            
+            if !viewModel.disableNextMonthButton {
+                Button(action: {
+                    viewModel.navigateMonth(by: 1)
+                }) {
+                    Image(systemName: "chevron.right.circle.fill")
+                }
+            }
+
         }.font(.title2).foregroundColor(ColorPalette.light).padding(.horizontal, 8)
     }
 }
@@ -63,7 +79,6 @@ struct DetailedSummaryView: View {
     
     var body: some View {
         HStack {
-            
             NavigationLink {
                 SubscriptionManagerView(transactionsType: .income, datasource: overview?.incomeTransactions)
             } label: {

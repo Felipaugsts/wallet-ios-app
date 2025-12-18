@@ -26,6 +26,7 @@ struct bitcoin_appApp: App {
                     FirebaseApp.configure()
                     RemoteConfigManager.shared.fetchAndActivate()
                     setupTheme()
+                    setupLanguage()
                 }
         }
     }
@@ -33,5 +34,10 @@ struct bitcoin_appApp: App {
     private func setupTheme() {
         let isDarkMode = UserDefaultsUtils.shared.getDarkMode()
         ThemeManager.shared.updateTheme(isDarkMode ? .dark : .light)
+    }
+    
+    private func setupLanguage() {
+        let language = UserDefaultsUtils.shared.getLanguage()
+        languageManager.saveLanguage(SelectedLanguage(rawValue: language) ?? .english)
     }
 }

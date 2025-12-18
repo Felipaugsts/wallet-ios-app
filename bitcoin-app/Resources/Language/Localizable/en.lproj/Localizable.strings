@@ -56,3 +56,27 @@
 "Serviços" = "Services";
 "Café" = "Coffee";
 "Transporte" = "Transport";
+
+"montlyTotalAmount" = "Monthly Total";
+"startAddingExpense" = "Start Adding a new expense to see the monthly summary here.";
+"addExpense" = "Add Expense";
+"edit" = "Edit";
+"delete" = "Delete";
+"confirmDeleteTitle" = "Deseja excluir a recorrência?";
+"confirmDeleteYes" = "Sim, excluir recorrência";
+"confirmDeleteNo" = "Não, apenas este mês";
+"confirmDeleteCancel" = "Cancelar";
+"monthly" = "Monthly";
+"emptyValuesTitle" = "Empty Values";
+
+"logout" = "Logout";
+"fixed" = "Fixed Expenses";
+"credit_card" = "Credit Card";
+"transport" = "Transport";
+"food" = "Food";
+"leisure" = "Leisure";
+"other" = "Other";
+"salary" = "Salary";
+"dividends" = "Dividends";
+"freelance" = "Freelance";
+"other_income" = "Other Income";

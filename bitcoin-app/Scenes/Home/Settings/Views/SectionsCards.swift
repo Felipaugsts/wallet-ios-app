@@ -35,13 +35,26 @@ extension SettingsView {
                 }
                 
             case .navigation:
-                NavigationLink(destination: Text("\(item.title)".localized)) {
+                NavigationLink(destination: getDestinationView(view: item)) {
                     Text("\(item.title)".localized)
                 }.disabled(!item.enabled)
                 
             default:
                 EmptyView()
             }
+        }
+    }
+
+    func getDestinationView(view: OptionModel) -> some View {
+        switch view.id {
+        case "contact":
+            return AnyView(ContactView())
+            
+        case "about_app":
+            return AnyView(AboutView())
+            
+        default:
+            return AnyView(EmptyView())
         }
     }
 }

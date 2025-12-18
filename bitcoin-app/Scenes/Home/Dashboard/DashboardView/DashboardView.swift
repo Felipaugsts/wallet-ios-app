@@ -11,26 +11,24 @@ struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     
     var body: some View {
-            ScrollView {
-                VStack(spacing: 25) {
-                    HeaderView(
-                        month: viewModel.monthFormatter.string(from: viewModel.currentDate),
-                        onNavigate: viewModel.navigateMonth
-                    ).shimmer(when: $viewModel.isLoading)
-                    
-                    MainSummaryCard(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
-                    DetailedSummaryView(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
-                    
-                    investmentsSection.shimmer(when: $viewModel.isLoading)
-                    VStack {}.frame(height: 50)
-                }
-                .padding()
+        ScrollView {
+            VStack(spacing: 25) {
+                HeaderView(month: viewModel.monthFormatter.string(from: viewModel.currentDate))
+                    .shimmer(when: $viewModel.isLoading)
+                
+                MainSummaryCard(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
+                DetailedSummaryView(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
+                
+                investmentsSection.shimmer(when: $viewModel.isLoading)
+                VStack {}.frame(height: 50)
             }
-            .task { viewModel.fetchSummary() }
-            .navigationBarTitleDisplayMode(.large)
-            .background(ColorPalette.black.edgesIgnoringSafeArea(.all))
-            .scrollBounceBehavior(.basedOnSize)
-            .scrollIndicators(.hidden)
+            .padding()
+        }
+        .task { viewModel.fetchSummary() }
+        .navigationBarTitleDisplayMode(.large)
+        .background(Color(uiColor: .systemGroupedBackground))
+        .scrollIndicators(.hidden)
+        .environmentObject(viewModel)
     }
     
     // MARK: - Sections (ainda como computed properties para clareza)

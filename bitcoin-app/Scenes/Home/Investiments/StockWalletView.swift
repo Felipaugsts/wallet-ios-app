@@ -37,7 +37,6 @@ struct StockWalletView: View {
             }
         }
         .scrollIndicators(.hidden)
-        .scrollBounceBehavior(.basedOnSize)
     }
 }
 extension StockWalletView {

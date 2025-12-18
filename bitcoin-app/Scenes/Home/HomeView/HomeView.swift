@@ -13,30 +13,31 @@ struct HomeView: View {
     
     var body: some View {
         ZStack {
-            
-            switch selectedButton {
-            case "dashboard":
-                DashboardView()
-                    .navigationTitle(TextValue.dashboard.localized)
-                    .task { viewModel.fetchTabs() }
-                
-            case "investments":
-                StockWalletView()
-                    .navigationTitle(TextValue.dashboardTitle.localized)
-                    .navigationBarTitleDisplayMode(.large)
-                
-            case "configuration":
-                SettingsView()
-                    .navigationTitle(TextValue.settingsTitle.localized)
-                    .navigationBarTitleDisplayMode(.large)
-                
-            default:
-                EmptyView()
+            VStack {
+                switch selectedButton {
+                case "dashboard":
+                    DashboardView()
+                        .navigationTitle(TextValue.dashboard.localized)
+                        .task { viewModel.fetchTabs() }
+                    
+                case "investments":
+                    StockWalletView()
+                        .navigationTitle(TextValue.dashboardTitle.localized)
+                        .navigationBarTitleDisplayMode(.large)
+                    
+                case "configuration":
+                    SettingsView()
+                        .navigationTitle(TextValue.settingsTitle.localized)
+                        .navigationBarTitleDisplayMode(.large)
+                    
+                default:
+                    EmptyView()
+                }
             }
             
             FloatingTabBar(selectedId: $selectedButton, items: viewModel.tabItems)
-                .padding(.top, 75)
         }
         .navigationBarBackButtonHidden()
+        .scrollBounceBehavior(.basedOnSize)
     }
 }
