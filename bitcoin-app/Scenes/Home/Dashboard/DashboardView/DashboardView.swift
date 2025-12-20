@@ -16,8 +16,11 @@ struct DashboardView: View {
                 HeaderView(month: viewModel.monthFormatter.string(from: viewModel.currentDate))
                     .shimmer(when: $viewModel.isLoading)
                 
-                MainSummaryCard(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
-                DetailedSummaryView(overview: viewModel.overView).shimmer(when: $viewModel.isLoading)
+                MainSummaryCard(overview: viewModel.overView)
+                    .shimmer(when: $viewModel.isLoading)
+                
+                DetailedSummaryView()
+                    .shimmer(when: $viewModel.isLoading)
                 
                 investmentsSection.shimmer(when: $viewModel.isLoading)
                 VStack {}.frame(height: 50)

@@ -64,4 +64,5 @@ struct TextValue {
     static let confirmDeleteCancel = "confirmDeleteCancel"
     static let monthly = "monthly"
     static let emptyValuesTitle = "emptyValuesTitle"
+    static let cloneNextMonth = "cloneNextMonth"
 }

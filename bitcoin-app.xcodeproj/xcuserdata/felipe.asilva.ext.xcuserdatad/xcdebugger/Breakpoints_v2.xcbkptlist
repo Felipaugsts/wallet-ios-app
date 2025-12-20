@@ -39,16 +39,32 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "2FD0AA38-812C-4853-97BA-C6FB3FBEA4B9"
+            uuid = "DDD2FBD0-81D1-4916-83DE-6FAC8F6DD572"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "bitcoin-app/Scenes/Home/Dashboard/AddTransaction/AddTransactionViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "131"
-            endingLineNumber = "131"
-            landmarkName = "saveTransaction(data:type:)"
+            startingLineNumber = "105"
+            endingLineNumber = "105"
+            landmarkName = "saveTransaction()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "CD9E58D7-A969-4403-B911-5E566A41B5E3"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "bitcoin-app/Infrastructure/Service/HomeService.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "72"
+            endingLineNumber = "72"
+            landmarkName = "createTransaction(data:collection:completion:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

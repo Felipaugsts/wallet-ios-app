@@ -8,22 +8,19 @@
 import SwiftUI
 
 struct SubscriptionManagerView: View {
-    var transactionsType: TransactionType
-    var datasource: [ExpenseModel]?
     @StateObject var viewModel: ExpensesViewModel
+    @EnvironmentObject var dashboardViewModel: DashboardViewModel
+    var preSelectedTransactionType: TransactionType
     
-    init(transactionsType: TransactionType,
-         datasource: [ExpenseModel]? = nil) {
-        self.transactionsType = transactionsType
-        self.datasource = datasource
+    init(preSelectedTransactionType: TransactionType) {
+        self.preSelectedTransactionType = preSelectedTransactionType
         
-        _viewModel = StateObject(wrappedValue: ExpensesViewModel(
-            transactionsType: transactionsType,
-            datasource:  datasource ?? [],
-            loading: false)
-        )
+        self._viewModel = StateObject(wrappedValue: ExpensesViewModel(
+            transactionsType: .expense, // Use um valor padrão temporário
+            datasource: [],
+            loading: false
+        ))
     }
-    
     var totalMonthly: Double {
         viewModel.datasource.reduce(0) { $0 + (Double($1.valueBRL) ?? 0) }
     }
@@ -58,6 +55,14 @@ struct SubscriptionManagerView: View {
                                 preSelectedValueType: viewModel.transactionsType,
                                 preSelectedCategoryId: "",
                                 delegate: viewModel)
+            .environmentObject(dashboardViewModel)
+        }
+        .onAppear {
+            viewModel.transactionsType = preSelectedTransactionType
+            viewModel.datasource = preSelectedTransactionType == .expense ?
+            dashboardViewModel.overView?.expensesTransactions ?? [] :
+            dashboardViewModel.overView?.incomeTransactions ?? []
+            viewModel.currentDate = dashboardViewModel.currentDate
         }
     }
 }
@@ -150,11 +155,15 @@ struct SubscriptionList: View {
             
             ForEach(viewModel.filteredDatasource) { item in
                 Menu {
+                    Button(TextValue.cloneNextMonth.localized) { }
+                    
                     Button(action: {
                         viewModel.editTransaction(value: item)
                     }) {
                         Label(TextValue.edit.localized, systemImage: "pencil")
                     }
+                    
+                    Divider()
                     
                     Button(role: .destructive, action: {
                         viewModel.handleDeleteAction(item: item)
@@ -173,6 +182,14 @@ struct SubscriptionList: View {
                     viewModel.deleteTransaction(id: itemToDelete.id, collection: itemToDelete.isRecurring ? "recurring" : nil)
                 }
             }
+            
+            Button("Deletar apenas deste mês") {
+                if let itemToDelete = viewModel.selectedItemToDelete {
+                    viewModel.excludeFromCurrentMonth(id: itemToDelete.id)
+                }
+            }
+            
+            Divider()
             
             Button(TextValue.confirmDeleteCancel.localized, role: .cancel) { }
         }

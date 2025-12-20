@@ -75,25 +75,27 @@ struct MainSummaryCard: View {
 }
 
 struct DetailedSummaryView: View {
-    let overview: OverviewResult?
+    @EnvironmentObject var dashboardViewModel: DashboardViewModel
     
     var body: some View {
         HStack {
             NavigationLink {
-                SubscriptionManagerView(transactionsType: .income, datasource: overview?.incomeTransactions)
+                SubscriptionManagerView(preSelectedTransactionType: .income)
+                    .environmentObject(dashboardViewModel)
             } label: {
-                SummaryDetailCard(title: TextValue.incomes.localized, value: String(describing: overview?.incomeTotal ?? 0),
-                                  percentageChange: String(describing: overview?.incomeChangePercent ?? 0),
+                SummaryDetailCard(title: TextValue.incomes.localized, value: String(describing: dashboardViewModel.overView?.incomeTotal ?? 0),
+                                  percentageChange: String(describing: 0),
                                   iconName: "arrow.down.left",
                                   color: ColorPalette.green)
             }
             
             NavigationLink {
-                SubscriptionManagerView(transactionsType: .expense, datasource: overview?.expensesTransactions)
+                SubscriptionManagerView(preSelectedTransactionType: .expense)
+                    .environmentObject(dashboardViewModel)
             } label: {
                 SummaryDetailCard(title: TextValue.expenses.localized,
-                                  value: String(describing: overview?.expenseTotal ?? 0),
-                                  percentageChange: String(describing: overview?.expenseChangePercent ?? 0),
+                                  value: String(describing: dashboardViewModel.overView?.expenseTotal ?? 0),
+                                  percentageChange: String(describing: 0),
                                   iconName: "arrow.up.right", color: ColorPalette.red)
             }
         }

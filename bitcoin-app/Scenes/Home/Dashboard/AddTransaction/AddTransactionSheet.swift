@@ -12,6 +12,7 @@ struct AddTransactionSheet: View {
     var preSelectedValueType: TransactionType
     var preSelectedCategoryId: String
     weak var delegate: TransactionDelegate?
+    @EnvironmentObject var dashboardViewModel: DashboardViewModel
     
     @StateObject private var viewModel: AddTransactionViewModel
     @Environment(\.dismiss) private var dismiss
@@ -74,18 +75,21 @@ struct AddTransactionSheet: View {
                     
                     DatePicker(
                         viewModel.transactionType == .expense ? "Vencimento" : "Recebimento",
-                        selection: $viewModel.transaction.dueDate,
+                        selection: $viewModel.currentSelectedDate,
                         displayedComponents: .date
                     )
                 }
                 
-                Section(header: Text("Opções Adicionais")) {
-                    Toggle("É uma transação recorrente?", isOn: $viewModel.isRecurring.animation())
+                if viewModel.isRecurringEnabled && (viewModel.transaction.recurringEditable ?? true) && !viewModel.isRecurring {
+                    Section(header: Text("Opções Adicionais")) {
+                        Toggle("É uma transação recorrente?", isOn: $viewModel.isRecurring.animation())
+                    }
                 }
             }
             .shimmer(when: $viewModel.isLoading)
             .navigationTitle("Nova Transação")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollBounceBehavior(.basedOnSize)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancelar") { dismiss() }
@@ -102,12 +106,12 @@ struct AddTransactionSheet: View {
                 viewModel.transactionType = preSelectedValueType
                 viewModel.populateTransaction(transaction: editTransaction)
                 viewModel.isLoading = false
+                viewModel.currentSelectedDate = dashboardViewModel.currentDate
             }
             .onChange(of: viewModel.shouldUpdateTransactions) { _, _ in
                 delegate?.updateTransactions(transaction: viewModel.transaction)
                 self.dismiss()
             }
-            .springLoadingBehavior(.automatic)
         }
         .tint(viewModel.currencyColor)
     }

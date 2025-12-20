@@ -94,7 +94,7 @@ class DashboardViewModel: ObservableObject, Observable {
         
         Task {
             do {
-                let transactions = try await FirestoreUserService().getUserOverview(month: month, year: year)
+                let transactions = try await HomeService().getUserOverview(month: month, year: year)
                 overView = transactions
             } catch {
                 print("Error fetching summary: \(error.localizedDescription)")

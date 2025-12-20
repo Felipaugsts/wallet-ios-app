@@ -21,6 +21,7 @@ class ExpensesViewModel: ObservableObject {
     @Published var showAlert: Bool
     @Published var selectedItemToDelete: ExpenseModel?
     @Published var selectedCategory: String = "" { didSet { handleFilter() } }
+    var currentDate: Date?
     
     func handleFilter() {
         guard !selectedCategory.isEmpty else {
@@ -69,14 +70,38 @@ class ExpensesViewModel: ObservableObject {
         deleteTransaction(id: item.id)
     }
     
+    func excludeFromCurrentMonth(id: String) {
+        guard let currentDate else { return }
+        if var transaction: ExpenseModel = datasource.first(where: { $0.id == id }) {
+            
+            if var dates = transaction.excludedMonths {
+                dates.append(currentDate)
+                transaction.excludedMonths = dates
+            } else {
+                transaction.excludedMonths = [currentDate]
+            }
+            
+            let payload = transaction.toDict()
+            HomeService().updateDocument(collection: .recurring,
+                                         documentId: transaction.transactionID,
+                                         updates: payload) { _ in
+                withAnimation {
+                    self.datasource.removeAll(where: { $0.id == id })
+                }
+            }
+        }
+    }
+    
     func deleteTransaction(id: String, collection: String? = nil) {
-        var collectionValue = collection
+        var collectionValue: Collections = .expenses
         
         if collection == nil {
-            collectionValue = transactionsType == .expense ? "expenses" : "incomes"
+            collectionValue = transactionsType == .expense ? .expenses : .incomes
+        } else {
+            collectionValue = .recurring
         }
         
-        FirestoreUserService().deleteDocument(collection: collectionValue ?? "", documentId: id) { result in
+        HomeService().deleteDocument(collection: collectionValue , documentId: id) { result in
             switch result {
             case .success(_):
                 withAnimation {
@@ -103,7 +128,7 @@ extension ExpensesViewModel: @preconcurrency TransactionDelegate {
                 _ = removeItem(transaction: transaction)
                 return
             }
-            print("transaction updating", transaction)
+            
             if !transaction.transactionID.isEmpty, let index = datasource.firstIndex(where: { $0.transactionID == transaction.transactionID }) {
                 datasource[index] = transaction
             } else {

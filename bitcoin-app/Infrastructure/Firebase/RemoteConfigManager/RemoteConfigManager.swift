@@ -68,6 +68,7 @@ enum RemoteConfigKeys: String {
     case configurationView = "wp_configuration_view"
     case tabConfiguration = "wp_tabview_config"
     case wpCategories = "wp_categories"
+    case recurringEnabled = "wp_recurring_enabled"
 }
 
 extension Data {

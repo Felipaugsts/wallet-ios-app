@@ -21,12 +21,22 @@ class AddTransactionViewModel: ObservableObject {
     @Published var shouldUpdateTransactions: Bool = false
     @Published var transaction: ExpenseModel = ExpenseModel(transactionID: "", dueDate: Date())
     @Published var isLoading: Bool = false
+    @Published var currentSelectedDate: Date = Date()
     
-    init(transactionType: TransactionType) {
+    var homeService: HomeService
+    
+    init(transactionType: TransactionType,
+         homeService: HomeService = HomeService()) {
         self.transactionType = transactionType
+        self.homeService = homeService
     }
     
     // MARK: - Computed Properties
+    
+    var isRecurringEnabled: Bool = {
+        RemoteConfigManager().bool(for: .recurringEnabled)
+    }()
+    
     var currencyColor: Color {
         transactionType == .expense ? .red : .green
     }
@@ -63,15 +73,15 @@ class AddTransactionViewModel: ObservableObject {
         isLoading = true
         
         let calendar = Calendar.current
-        let month = calendar.component(.month, from: transaction.dueDate)
-        let year = calendar.component(.year, from: transaction.dueDate)
+        let month = calendar.component(.month, from: currentSelectedDate)
+        let year = calendar.component(.year, from: currentSelectedDate)
         
-        let data: [String: Any] = [
+        var data: [String: Any] = [
             "type": transactionType.rawValue,
             "name": transaction.name,
             "description": transaction.description,
             "categoryId": transaction.selectedCategoryId,
-            "date": transaction.dueDate,
+            "date": currentSelectedDate,
             "amount": transaction.valueBRL,
             "isRecurring": isRecurring,
             "recurrenceMonths": recurrenceMonths,
@@ -80,13 +90,28 @@ class AddTransactionViewModel: ObservableObject {
             "year": year
         ]
         
-        if !transaction.transactionID.isEmpty, !isRecurring {
+        if !transaction.transactionID.isEmpty && !isRecurring {
             updateExpense(data: data)
+            return
+        } else if !transaction.isRecurring && isRecurring && !transaction.transactionID.isEmpty {
+            homeService.createTransactionWithDocumentId(collection: .recurring,
+                                                        id: transaction.transactionID,
+                                                        data: data)
+            shouldUpdateTransactions = true
+            return
+        } else if isRecurring && !transaction.transactionID.isEmpty {
+            data["recurringEditable"] = false
+            data["isRecurring"] = false
+            homeService.createTransactionWithDocumentId(collection: transaction.type == .expense ? .expenses : .incomes,
+                                                        id: transaction.transactionID,
+                                                        data: data)
+            shouldUpdateTransactions = true
             return
         }
         
-        if isRecurring {
-            FirestoreUserService().createRecuringTransaction(data: data) { results in
+        
+        if isRecurring && transaction.recurringEditable ?? true {
+            homeService.createTransaction(data: data, collection: .recurring) { results in
                 switch results {
                 case .success(_):
                     self.shouldUpdateTransactions = true
@@ -101,12 +126,10 @@ class AddTransactionViewModel: ObservableObject {
         
         saveTransaction(data: data, type: transactionType)
     }
- 
+    
     func updateExpense(data: [String: Any]) {
-        let collection = transactionType == .expense ? "expenses" : "incomes"
-        FirestoreUserService().updateDocument(collection: collection,
-                                              documentId: transaction.transactionID,
-                                              updates: data) { results in
+        let collection: Collections = transactionType == .expense ? .expenses : .incomes
+        homeService.updateDocument(collection: collection, documentId: transaction.transactionID, updates: data) { results in
             switch results {
             case .success(_):
                 self.shouldUpdateTransactions = true
@@ -119,7 +142,7 @@ class AddTransactionViewModel: ObservableObject {
     
     @MainActor
     func saveTransaction(data: [String: Any], type: TransactionType) {
-        FirestoreUserService().createTransaction(data: data, type: type) { results in
+        homeService.createTransaction(data: data, collection: type == .expense ? .expenses : .incomes) { results in
             switch results {
             case .success(let id):
                 if !id.isEmpty {
