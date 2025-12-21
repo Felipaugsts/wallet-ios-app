@@ -28,6 +28,8 @@ class UserRepository {
     
     static var shared = UserRepository()
     
+    lazy var user: User? = loadUser()
+    
     func saveUser(_ user: User) -> Bool {
         guard let userData = try? JSONEncoder().encode(user) else {
             return false
@@ -45,9 +47,11 @@ class UserRepository {
     
     // Remove o usuário do Keychain
     func logout() {
+        isBiometricEnabled = false
+        _ = keychainService.delete(service: serviceIdentifier, account: accountIdentifier)
+        
         do {
             try Auth.auth().signOut()
-            _ = keychainService.delete(service: serviceIdentifier, account: accountIdentifier)
         } catch {
             print("error")
         }

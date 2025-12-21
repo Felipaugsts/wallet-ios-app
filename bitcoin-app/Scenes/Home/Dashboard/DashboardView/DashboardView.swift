@@ -22,7 +22,9 @@ struct DashboardView: View {
                 DetailedSummaryView()
                     .shimmer(when: $viewModel.isLoading)
                 
-                investmentsSection.shimmer(when: $viewModel.isLoading)
+                investmentsSection
+                    .shimmer(when: $viewModel.isLoading)
+                
                 VStack {}.frame(height: 50)
             }
             .padding()
@@ -38,10 +40,18 @@ struct DashboardView: View {
     
     private var investmentsSection: some View {
         TitledSectionView(title: TextValue.investments.localized) {
-            let change = viewModel.percentageChange(current: viewModel.overView?.totalInvestedValue ?? 0, previous: viewModel.previousMonthData.invested)
-            ListItemRow(iconName: "chart.pie.fill", iconColor: ColorPalette.orange, title: TextValue.totalInvested.localized, subtitle: change, trailingTopText: viewModel.formatCurrency(viewModel.overView?.totalInvestedValue ?? 0), trailingTopColor: ColorPalette.textColor)
+            ListItemRow(
+                iconName: "chart.pie.fill",
+                iconColor: ColorPalette.orange,
+                title: TextValue.totalInvested.localized,
+                subtitle: "subtitle",
+                trailingTopText: viewModel.formatCurrency(viewModel.overView?.totalInvestedValue ?? 0),
+                trailingTopColor: ColorPalette.textColor,
+                percentage: 35,
+                value: viewModel.overView?.totalInvestedValue ?? 0
+            )
+            
             Divider().padding(.leading, 60)
-            ListItemRow(iconName: "giftcard.fill", iconColor: ColorPalette.orange, title: TextValue.dividendsReceived.localized, subtitle: nil, trailingTopText: viewModel.formatCurrency(viewModel.overView?.currentMonthDividends ?? 0), trailingTopColor: ColorPalette.textColor)
         }
     }
     

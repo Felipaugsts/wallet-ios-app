@@ -8,6 +8,7 @@
 import SwiftUI
 import LocalAuthentication
 import FirebaseAuth
+import Onboarding
 
 enum LoginState: Hashable {
     case initial // Opções de login social e demonstração
@@ -65,12 +66,12 @@ struct SocialLoginButton: View {
 
 /// View para o estado inicial (Novo Usuário).
 struct InitialLoginView: View {
-    @EnvironmentObject var authService: LoginViewModel
+    @EnvironmentObject var viewModel: LoginViewModel
     
     var body: some View {
         VStack(spacing: 20) {
             // Título
-            Text("Welcome to App Name")
+            Text("Welcome to Finance app")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
@@ -84,30 +85,34 @@ struct InitialLoginView: View {
             Spacer()
             
             // Botões de Login Social
-            SocialLoginButton(title: "Continue with Google", iconName: "g.circle.fill", action: authService.loginWithGoogle, isApple: false)
-            
-            SocialLoginButton(title: "Continue with Apple", iconName: "apple.logo", action: authService.loginWithApple, isApple: true)
-            
-            // Separador
-            HStack {
-                Rectangle().frame(height: 1).foregroundColor(.gray.opacity(0.3))
-                Text("or").foregroundColor(.gray)
-                Rectangle().frame(height: 1).foregroundColor(.gray.opacity(0.3))
+            if viewModel.remoteConfig?.loginWithGoogle ?? false {
+                SocialLoginButton(title: "Continue with Google", iconName: "g.circle.fill", action: viewModel.loginWithGoogle, isApple: false)
             }
-            .padding(.vertical, 10)
             
-            // Botão de Demonstração
-            Button(action: authService.enterDemoMode) {
-                Text("Ver Demonstração")
-                    .font(.headline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.blue)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.blue, lineWidth: 1)
-                    )
+            if viewModel.remoteConfig?.loginWithApple ?? false {
+                SocialLoginButton(title: "Continue with Apple", iconName: "apple.logo", action: viewModel.loginWithApple, isApple: true)
+            }
+            
+            if viewModel.remoteConfig?.demo ?? false {
+                HStack {
+                    Rectangle().frame(height: 1).foregroundColor(.gray.opacity(0.3))
+                    Text("or").foregroundColor(.gray)
+                    Rectangle().frame(height: 1).foregroundColor(.gray.opacity(0.3))
+                }
+                .padding(.vertical, 10)
+                
+                Button(action: viewModel.enterDemoMode) {
+                    Text("Ver Demonstração")
+                        .font(.headline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.blue, lineWidth: 1)
+                        )
+                }
             }
         }
         .padding(.horizontal, 30)
@@ -197,6 +202,7 @@ struct DemoView: View {
 
 struct LoginScreen: View {
     @StateObject private var viewModel = LoginViewModel()
+    @AppStorage(.onboardingKey) private var isOnboardingCompleted = false
     
     var body: some View {
         NavigationStack {
@@ -220,7 +226,32 @@ struct LoginScreen: View {
             }
             .navigationDestination(isPresented: $viewModel.displayHome) { HomeView() }
         }
-        .navigationBarBackButtonHidden()
         .environmentObject(viewModel)
+        .showOnboardingIfNeeded { markComplete in
+            setupOnboarding()
+                .with(continueAction: markComplete)
+        }
+        .navigationBarBackButtonHidden()
+    }
+    
+    private func setupOnboarding() -> WelcomeScreen {
+        if let values = RemoteConfigManager.shared.model(model: FinanceApp.self, for: .onboardingConfig) {
+            return WelcomeScreen.apple(
+                accentColor: .green,
+                appDisplayName: values.appDisplayName,
+                appIcon: Image("logo"),
+                features: values.features.compactMap({
+                    FeatureInfo(
+                        image: Image(systemName: $0.image),
+                        title: $0.title,
+                        content: $0.content
+                    )
+                }),
+                privacyPolicyURL: values.privacyPolicyURL,
+                titleSectionAlignment: .leading
+            )
+        }
+        isOnboardingCompleted = false
+        return WelcomeScreen.mock
     }
 }

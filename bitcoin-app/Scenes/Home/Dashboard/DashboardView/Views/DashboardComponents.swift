@@ -33,7 +33,7 @@ struct HeaderView: View {
                     Image(systemName: "chevron.right.circle.fill")
                 }
             }
-
+            
         }.font(.title2).foregroundColor(ColorPalette.light).padding(.horizontal, 8)
     }
 }

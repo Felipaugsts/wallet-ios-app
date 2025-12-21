@@ -27,7 +27,7 @@ struct SubscriptionManagerView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 15) {
                 MonthlySummaryCard(totalMonthly: totalMonthly)
                 
                 SubscriptionList()
@@ -137,7 +137,7 @@ struct SubscriptionList: View {
     @EnvironmentObject var viewModel: ExpensesViewModel
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 10) {
             
             if viewModel.datasource.isEmpty {
                 

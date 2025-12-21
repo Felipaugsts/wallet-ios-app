@@ -17,8 +17,6 @@ struct SummaryDetailCard: View {
             
             Text(value).font(.title2).fontWeight(.bold)
                 .foregroundColor(ColorPalette.textColor)
-            Text(percentageChange).font(.caption).fontWeight(.medium)
-                .foregroundColor(percentageChange.contains("-") ? ColorPalette.red : ColorPalette.green)
             
         }
         .padding().frame(maxWidth: .infinity, alignment: .leading)

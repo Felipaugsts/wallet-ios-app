@@ -1,5 +1,5 @@
 {
-  "originHash" : "7ed78cec4688813732ed048994a6c24c5c081e333197fce4007040cea0ee7d0c",
+  "originHash" : "33d46f4cf205e0f10b0bc3b69bb9c466170bd196554cebaacc3feaa616a80f32",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -152,6 +152,15 @@
       "state" : {
         "revision" : "c169a5744230951031770e27e475ff6eefe51f9d",
         "version" : "1.33.3"
+      }
+    },
+    {
+      "identity" : "swiftui-onboarding",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Sedlacek-Solutions/SwiftUI-Onboarding.git",
+      "state" : {
+        "revision" : "b21a2f361d5a82e7b08f05d2e5de98db9f0f1e71",
+        "version" : "2.2.0"
       }
     }
   ],

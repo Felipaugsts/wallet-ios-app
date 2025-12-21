@@ -12,36 +12,151 @@ struct SplashScreen: View {
     @State private var displayLogin = false
     @State private var displayHome = false
     private var authListener: AuthStateDidChangeListenerHandle?
-
+    @State private var isVisible = false
+    @AppStorage(.onboardingKey) private var isOnboardingCompleted = true
+    @State private var buttonOffset: CGFloat = 100
+    @State private var isButtonVisible = false
+    @State private var isSplashVisible = false
+    var isBiometryEnabled = UserRepository.shared.isBiometricEnabled
+    @StateObject private var viewModel = LoginViewModel()
+    
     var body: some View {
         NavigationStack {
             VStack {
-                ProgressView()
-                    .task {
-                        setupAuthListener()
-                    }.edgesIgnoringSafeArea(.all)
+                if !isOnboardingCompleted && isSplashVisible {
+                    VStack {
+                        if isVisible {
+                            Image("logo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 80, height: 80)
+                                .transition(.opacity)
+                        }
+                        
+                        Text("Finance App")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .padding(.top, 10)
+                    }
+                    
+                    
+                    Text("Welcome")
+                }
+                
+                if isButtonVisible {
+                    VStack(spacing: 20) {
+                        VStack {
+                            Text("Welcome back,")
+                                .font(.title)
+                                .foregroundColor(.gray)
+                                .padding(.top, 100)
+                            
+                            Text("Felipe Augusto")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .padding(.bottom, 40)
+                        }
+                        .offset(y: -buttonOffset)
+                        .animation(.easeInOut(duration: 0.5), value: buttonOffset)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            viewModel.loginWithBiometrics()
+                        }) {
+                            HStack {
+                                Image(systemName: "touchid")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 30, height: 30)
+                                
+                                Text("Sign In with Biometrics")
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .foregroundColor(.white)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                        }
+                        .padding(.horizontal, 30)
+                        .offset(y: buttonOffset)
+                        .animation(.easeInOut(duration: 0.5), value: buttonOffset)
+                        
+                    }
+                }
             }
             .navigationDestination(isPresented: $displayHome) { HomeView() }
             .navigationDestination(isPresented: $displayLogin) { LoginScreen() }
+            .onChange(of: viewModel.displayHome, { displayHome = true })
+            .task {
+                if !isOnboardingCompleted {
+                    setupAuthListener()
+                } else {
+                    isSplashVisible = true
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.7) {
+                    self.setupAuthListener()
+                }
+                
+                withAnimation(.easeIn(duration: 1)) { isVisible = true }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
+                    if !isOnboardingCompleted {
+                        setupAuthListener()
+                    }
+                }
+            }
         }
     }
-
+    
+    private func displayLoggedInAnimation() {
+        withAnimation(.easeOut(duration: 0.3)) {
+            isVisible = false
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation() {
+                isSplashVisible = false
+                isButtonVisible = true
+            }
+            
+            
+            withAnimation(.easeIn(duration: 0.8)) {
+                buttonOffset = -20
+            }
+        }
+    }
+    
+    private func displayLoginWithAnimation() {
+        withAnimation(.easeOut(duration: 0.3)) {
+            isVisible = false
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            self.displayLogin = true
+        }
+    }
+    
+    @MainActor
     private func setupAuthListener() {
         _ = Auth.auth().addStateDidChangeListener { authResult, user in
             if let user = user {
                 let userModel = User(id: user.uid, name: user.displayName ?? "", email: user.email ?? "", photoURL: user.photoURL)
-
+                
                 if UserRepository.shared.saveUser(userModel) {
                     if !UserRepository.shared.isBiometricEnabled {
-                        displayHome = true
+                        displayLoginWithAnimation()
                     } else {
-                        displayLogin = true
+                        displayLoggedInAnimation()
                     }
                 }
             } else {
-                displayLogin = true
+                displayLoginWithAnimation()
             }
         }
     }
 }
-

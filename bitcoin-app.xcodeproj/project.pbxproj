@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B37D20AE2EEF897D00ABA56B /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = B37D20AD2EEF897D00ABA56B /* GoogleSignIn */; };
 		B37D20B02EEF897D00ABA56B /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = B37D20AF2EEF897D00ABA56B /* GoogleSignInSwift */; };
+		B38A1BB32EF79FA40042A4B6 /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = B38A1BB22EF79FA40042A4B6 /* Onboarding */; };
 		B3FEE0142EEDB2530097DC4E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE0132EEDB2530097DC4E /* FirebaseAuth */; };
 		B3FEE0162EEDB2530097DC4E /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE0152EEDB2530097DC4E /* FirebaseCore */; };
 		B3FEE0182EEDB2530097DC4E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = B3FEE0172EEDB2530097DC4E /* FirebaseFirestore */; };
@@ -92,6 +93,7 @@
 				B37D20B02EEF897D00ABA56B /* GoogleSignInSwift in Frameworks */,
 				B3FEE0182EEDB2530097DC4E /* FirebaseFirestore in Frameworks */,
 				B3FEE01A2EEDB2530097DC4E /* FirebaseFunctions in Frameworks */,
+				B38A1BB32EF79FA40042A4B6 /* Onboarding in Frameworks */,
 				B3FEE01C2EEDB2530097DC4E /* FirebaseRemoteConfig in Frameworks */,
 				B37D20AE2EEF897D00ABA56B /* GoogleSignIn in Frameworks */,
 			);
@@ -164,6 +166,7 @@
 				B3FEE01B2EEDB2530097DC4E /* FirebaseRemoteConfig */,
 				B37D20AD2EEF897D00ABA56B /* GoogleSignIn */,
 				B37D20AF2EEF897D00ABA56B /* GoogleSignInSwift */,
+				B38A1BB22EF79FA40042A4B6 /* Onboarding */,
 			);
 			productName = "bitcoin-app";
 			productReference = B30C19FA2E9AA90D00151D50 /* bitcoin-app.app */;
@@ -251,6 +254,7 @@
 			packageReferences = (
 				B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				B37D20AC2EEF897D00ABA56B /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				B38A1BB12EF79FA40042A4B6 /* XCRemoteSwiftPackageReference "SwiftUI-Onboarding" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B30C19FB2E9AA90D00151D50 /* Products */;
@@ -625,6 +629,14 @@
 				minimumVersion = 9.0.0;
 			};
 		};
+		B38A1BB12EF79FA40042A4B6 /* XCRemoteSwiftPackageReference "SwiftUI-Onboarding" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Sedlacek-Solutions/SwiftUI-Onboarding.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.0;
+			};
+		};
 		B3FEE0122EEDB2530097DC4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -657,6 +669,11 @@
 		B38706CA2EA2B3E9004A3B6B /* DSKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DSKit;
+		};
+		B38A1BB22EF79FA40042A4B6 /* Onboarding */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B38A1BB12EF79FA40042A4B6 /* XCRemoteSwiftPackageReference "SwiftUI-Onboarding" */;
+			productName = Onboarding;
 		};
 		B3FEE0132EEDB2530097DC4E /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

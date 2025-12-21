@@ -25,6 +25,10 @@ class LoginViewModel: ObservableObject {
     private var user = UserRepository.shared.loadUser()
     private let biometryEnabled: Bool = UserRepository.shared.isBiometricEnabled
     
+    var remoteConfig: LoginModel.Config? {
+        RemoteConfigManager.shared.model(model: LoginModel.Config.self, for: .loginConfig)
+    }
+    
     init() {
         // Lógica para determinar o estado inicial
         if let user = user?.name {
@@ -91,9 +95,11 @@ class LoginViewModel: ObservableObject {
             }
         }
     }
+    @AppStorage(.onboardingKey) private var isOnboardingCompleted = false
     
     func loginWithApple() {
-        self.displayHome = true
+        isOnboardingCompleted = false
+
     }
     
     func loginWithBiometrics() {
