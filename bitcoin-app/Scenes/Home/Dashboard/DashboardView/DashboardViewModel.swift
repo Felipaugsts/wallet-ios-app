@@ -8,7 +8,10 @@
 import Foundation
 import SwiftUI
 
-class DashboardViewModel: ObservableObject, Observable {
+protocol DashboardDelegate: AnyObject {
+    var updateTransactions: Bool { get set }
+}
+class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
     // MARK: - Published Properties
     // @Published automaticamente notifica a View quando esses valores mudam.
     @Published var currentDate: Date = Date()
@@ -18,8 +21,12 @@ class DashboardViewModel: ObservableObject, Observable {
     @Published var overView: OverviewResult?
     @Published var isLoading: Bool = true
     @Published var disableNextMonthButton: Bool = false
+    @Published var expenseSummary: [ExpensesSummaryModel] = []
     
-    let user = UserRepository.shared.loadUser()
+    var updateTransactions: Bool = true
+    
+    let user = UserRepository.shared.user
+    let homeService = HomeService()
     // MARK: - Computed Properties
     var previousMonthData: FinancialData {
         //        let previousDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
@@ -86,21 +93,44 @@ class DashboardViewModel: ObservableObject, Observable {
         presentSheed = true
     }
     
+    func refresh() {
+        DispatchQueue.main.async {
+            self.fetchSummary()
+        }
+    }
+    
     @MainActor
     func fetchSummary() {
-        isLoading = true
-        let year = getYearAsInt(from: currentDate)
-        let month = getMonthAsInt(from: currentDate)
-        
-        Task {
-            do {
-                let transactions = try await HomeService().getUserOverview(month: month, year: year)
-                overView = transactions
-            } catch {
-                print("Error fetching summary: \(error.localizedDescription)")
+        if updateTransactions {
+            expenseSummary = []
+            isLoading = true
+            let year = getYearAsInt(from: currentDate)
+            let month = getMonthAsInt(from: currentDate)
+            
+            Task {
+                do {
+                    let transactions = try await homeService.getUserOverview(month: month, year: year)
+                    let creditCardOverView = try await homeService.summarizeCreditCard(filter: "credit_card",
+                                                                                       title: "Cartão de crédito",
+                                                                                       income: transactions.incomeTotal,
+                                                                                       data: transactions.expensesTransactions)
+                    
+                    let fixedExpensesOverView = try await homeService.summarizeCreditCard(filter: "fixed",
+                                                                                          title: "Gastos fixos",
+                                                                                       income: transactions.incomeTotal,
+                                                                                       data: transactions.expensesTransactions)
+                    
+                    expenseSummary.append(fixedExpensesOverView)
+                    expenseSummary.append(creditCardOverView)
+                    overView = transactions
+                } catch {
+                    print("Error fetching summary: \(error.localizedDescription)")
+                }
+                
+                isLoading = false
             }
             
-            isLoading = false
+            updateTransactions = false
         }
     }
 }

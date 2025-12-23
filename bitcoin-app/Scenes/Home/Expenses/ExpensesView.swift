@@ -63,6 +63,7 @@ struct SubscriptionManagerView: View {
             dashboardViewModel.overView?.expensesTransactions ?? [] :
             dashboardViewModel.overView?.incomeTransactions ?? []
             viewModel.currentDate = dashboardViewModel.currentDate
+            viewModel.delegate = dashboardViewModel
         }
     }
 }
@@ -261,5 +262,146 @@ struct CategoryPillSub: View {
                 .foregroundColor(isSelected ? .white : .primary)
                 .cornerRadius(20)
         }
+    }
+}
+
+import SwiftUI
+
+// MARK: - Model
+
+struct TransportExpense: Identifiable {
+    let id = UUID()
+    let title: String
+    let date: String
+    let amount: Double
+    let variation: Double
+    let icon: String
+}
+
+// MARK: - View
+
+struct TransportDetailView: View {
+    
+    // MARK: Mock Data
+    private let expenses: [TransportExpense] = [
+        .init(title: "Uber", date: "23 de dezembro, 2025", amount: 45, variation: 15, icon: "car.fill"),
+        .init(title: "Gasolina", date: "18 de dezembro, 2025", amount: 150, variation: 5, icon: "fuelpump.fill"),
+        .init(title: "Estacionamento", date: "12 de dezembro, 2025", amount: 20, variation: 2, icon: "parkingsign.circle.fill"),
+        .init(title: "Ônibus", date: "4 de dezembro, 2025", amount: 25, variation: 2, icon: "bus.fill")
+    ]
+    
+    private let total: Double = 320
+    private let income: Double = 8000
+    private let lastMonthDiff: Double = 15
+    private let months = ["Novembro", "Mês Atual", "Janeiro"]
+       
+    @State private var selectedMonthIndex = Calendar.current.component(.month, from: Date()) - 1
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            headerCard
+            monthSelector
+            expensesList
+        }
+        .padding()
+        .navigationTitle("Transporte")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    // MARK: - Month Selector
+    private var monthSelector: some View {
+        Picker("Selecione um mês", selection: $selectedMonthIndex) {
+            ForEach(0..<months.count, id: \.self) { index in
+                Text(months[index])
+                    .tag(index)
+            }
+        }
+        .pickerStyle(.segmented)
+        .font(.subheadline)
+    }
+    
+    // MARK: - Header Card
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Total")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Text(total.toCurrency())
+                .font(.largeTitle.bold())
+            
+            Text("+\(lastMonthDiff.toCurrency()) vs mês passado")
+                .font(.caption)
+                .foregroundColor(.green)
+            
+            ProgressView(value: total / income)
+                .tint(.blue)
+            
+            Text("\(Int((total / income) * 100))% da sua renda mensal")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 20).fill(Color(.secondarySystemBackground)))
+    }
+    
+    // MARK: - Expenses List
+    private var expensesList: some View {
+        List {
+            ForEach(expenses) { expense in
+                VStack(spacing: 16) {
+                    NavigationLink(destination: ExpenseDetailView(expense: expense)) {
+                        expenseRow(expense)
+                        
+                    }
+                }
+            }
+        }
+        .lineSpacing(10)
+        .listStyle(.plain)
+    }
+    
+    // MARK: - Expense Row
+    private func expenseRow(_ expense: TransportExpense) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: expense.icon)
+                .foregroundColor(.blue)
+                .frame(width: 32)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(expense.title)
+                    .font(.headline)
+                
+                Text(expense.date)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(expense.amount.toCurrency())
+                    .font(.headline)
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.up")
+                    Text("+\(Int(expense.variation))%")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Expense Detail View (Placeholder)
+struct ExpenseDetailView: View {
+    let expense: TransportExpense
+    
+    var body: some View {
+        Text("Detalhes para \(expense.title)")
+            .font(.title)
+            .navigationTitle(expense.title)
+            .navigationBarTitleDisplayMode(.inline)
     }
 }

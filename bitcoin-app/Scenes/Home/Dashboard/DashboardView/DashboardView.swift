@@ -9,10 +9,11 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @State var displayDetails = false
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 25) {
+            VStack(spacing: 18) {
                 HeaderView(month: viewModel.monthFormatter.string(from: viewModel.currentDate))
                     .shimmer(when: $viewModel.isLoading)
                 
@@ -22,8 +23,7 @@ struct DashboardView: View {
                 DetailedSummaryView()
                     .shimmer(when: $viewModel.isLoading)
                 
-                investmentsSection
-                    .shimmer(when: $viewModel.isLoading)
+                summaryCard
                 
                 VStack {}.frame(height: 50)
             }
@@ -34,6 +34,7 @@ struct DashboardView: View {
         .background(Color(uiColor: .systemGroupedBackground))
         .scrollIndicators(.hidden)
         .environmentObject(viewModel)
+        .navigationDestination(isPresented: $displayDetails) { TransportDetailView() }
     }
     
     // MARK: - Sections (ainda como computed properties para clareza)
@@ -55,27 +56,24 @@ struct DashboardView: View {
         }
     }
     
-    private func addNewItemView(action: @escaping () -> Void) -> some View {
-        VStack(spacing: 3) {
-            Image(systemName: "menubar.arrow.up.rectangle")
-                .font(.body)
-            
-            Text("Click para adicionar um novo campo.")
-                .font(.footnote)
-        }
-        .foregroundColor(.secondary)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity)
-        .background(Color.secondary.opacity(0.1))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(style: StrokeStyle(lineWidth: 1.2, dash: [6]))
-                .foregroundColor(Color.secondary.opacity(0.2))
-        )
-        .opacity(0.5)
-        .onTapGesture {
-            action()
+    private var summaryCard: some View {
+        Group {
+            if !viewModel.expenseSummary.isEmpty {
+                VStack(spacing: 16) {
+                    ForEach(viewModel.expenseSummary) { data in
+                        FinancialSummaryCard(data: data) { item in
+                            displayDetails = true
+                        }
+                    }
+                }
+            } else if viewModel.isLoading {
+                FinancialSummaryCard(data: .loadingStateValues) { _ in }
+                .shimmer(when: $viewModel.isLoading)
+            } else {
+                Text("Nenhum resumo disponível.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
     }
 }

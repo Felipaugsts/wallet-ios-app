@@ -17,7 +17,6 @@ class AddTransactionViewModel: ObservableObject {
     @Published var recurrenceMonths: Int = 0
     @Published var shouldRemind: Bool = false
     @Published var value: Double = 0
-    @Published var reminderDays: Int = 3
     @Published var shouldUpdateTransactions: Bool = false
     @Published var transaction: ExpenseModel = ExpenseModel(transactionID: "", dueDate: Date())
     @Published var isLoading: Bool = false

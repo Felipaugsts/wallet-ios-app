@@ -21,7 +21,10 @@ class ExpensesViewModel: ObservableObject {
     @Published var showAlert: Bool
     @Published var selectedItemToDelete: ExpenseModel?
     @Published var selectedCategory: String = "" { didSet { handleFilter() } }
+    
     var currentDate: Date?
+    
+    weak var delegate: DashboardDelegate?
     
     func handleFilter() {
         guard !selectedCategory.isEmpty else {
@@ -104,6 +107,7 @@ class ExpensesViewModel: ObservableObject {
         HomeService().deleteDocument(collection: collectionValue , documentId: id) { result in
             switch result {
             case .success(_):
+                self.delegate?.updateTransactions = true
                 withAnimation {
                     self.datasource.removeAll(where: { $0.id == id })
                 }
@@ -117,6 +121,7 @@ class ExpensesViewModel: ObservableObject {
     func editTransaction(value: ExpenseModel) {
         editValue = value
         showingAddSubscription = true
+        delegate?.updateTransactions = true
     }
 }
 
@@ -135,8 +140,10 @@ extension ExpensesViewModel: @preconcurrency TransactionDelegate {
                 datasource.append(transaction)
             }
             
-            filteredDatasource = datasource
+            handleFilter()
         }
+        
+        delegate?.updateTransactions = true
     }
     
     func removeItem(transaction: ExpenseModel) -> Bool {

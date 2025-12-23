@@ -13,17 +13,17 @@ struct SplashScreen: View {
     @State private var displayHome = false
     private var authListener: AuthStateDidChangeListenerHandle?
     @State private var isVisible = false
-    @AppStorage(.onboardingKey) private var isOnboardingCompleted = true
+    @AppStorage(.onboardingKey) private var isOnboardingCompleted: Bool = false
     @State private var buttonOffset: CGFloat = 100
     @State private var isButtonVisible = false
-    @State private var isSplashVisible = false
+    @State private var isSplashVisible = true
     var isBiometryEnabled = UserRepository.shared.isBiometricEnabled
     @StateObject private var viewModel = LoginViewModel()
     
     var body: some View {
         NavigationStack {
             VStack {
-                if !isOnboardingCompleted && isSplashVisible {
+                if isSplashVisible {
                     VStack {
                         if isVisible {
                             Image("logo")
@@ -90,14 +90,11 @@ struct SplashScreen: View {
             .navigationDestination(isPresented: $displayHome) { HomeView() }
             .navigationDestination(isPresented: $displayLogin) { LoginScreen() }
             .onChange(of: viewModel.displayHome, { displayHome = true })
-            .task {
-                if !isOnboardingCompleted {
-                    setupAuthListener()
-                } else {
+            .onAppear {
+                if isOnboardingCompleted {
                     isSplashVisible = true
                 }
-            }
-            .onAppear {
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.7) {
                     self.setupAuthListener()
                 }

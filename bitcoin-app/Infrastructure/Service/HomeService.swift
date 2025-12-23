@@ -36,10 +36,10 @@ final class HomeService {
         self.date = date
         
         try await handleRecurringTransactions()
-
+        
         let incomeCurrent = try await getTotal(collection: .incomes, month: month, year: year, currentTransactions: &incomeTransactions)
         let expenseCurrent = try await getTotal(collection: .expenses, month: month, year: year, currentTransactions: &expensesTransactions)
-
+        
         let balanceCurrent = incomeCurrent - expenseCurrent
         
         return OverviewResult(
@@ -78,7 +78,7 @@ final class HomeService {
         payload["created_at"] = Timestamp(date: Date())
         payload["updated_at"] = Timestamp(date: Date())
         payload["user_id"] = userId
-  
+        
         service.create(withDocumentId: id, collection: collection, payload: payload) { _ in }
     }
     
@@ -144,7 +144,7 @@ final class HomeService {
         let newIncome = transaction.incomeTransactions.filter { newIncome in
             newIncome.recurringEditable ?? true && newIncome.dueDate < date && !incomeTransactions.contains(where: { $0.id == newIncome.id })
         }
-
+        
         expensesTransactions.append(contentsOf: newExpenses)
         incomeTransactions.append(contentsOf: newIncome)
         recuringTransactions = transaction.expensesTransactions + transaction.incomeTransactions
@@ -156,9 +156,9 @@ final class HomeService {
         dateComponents.month = month
         dateComponents.day = 1
         let date = Calendar.current.date(from: dateComponents)
-
+        
         let data = try await service.fetch(collection: collection, userId: userId)
-
+        
         let transactions: [ExpenseModel] = data.compactMap { (documentId, documentData) in
             guard let documentData = documentData as? [String: Any],
                   let monthValue = documentData["month"] as? Int,
@@ -167,12 +167,12 @@ final class HomeService {
                   yearValue == year else {
                 return nil
             }
-
+            
             return documentData.createExpenseModel(documentId: documentId)
         }.compactMap { $0 }
-
+        
         validateTransaction(currentList: &currentTransactions, transactions: transactions, date: date)
-
+        
         return self.totalAmount(for: currentTransactions)
     }
     
@@ -187,7 +187,7 @@ final class HomeService {
                 return false
             })
         }
-
+        
         transactions.forEach { expense in
             
             if let existingExpenseIndex = currentList.firstIndex(where: { $0.transactionID == expense.transactionID }) {
@@ -212,4 +212,81 @@ final class HomeService {
             return result
         }
     }
+    
+    func summarizeCreditCard(filter: String, title: String, income: Double?, data: [ExpenseModel]?) async throws -> ExpensesSummaryModel {
+        guard let income, let data else {
+            throw NSError(domain: "", code: 400, userInfo: [NSLocalizedDescriptionKey: ""])
+        }
+        
+        let incomeInt = Int(income)
+        
+        let summaries: [SummaryItem] = data.compactMap { expense in
+            guard expense.selectedCategoryId == filter, let amount = Double(expense.valueBRL) else { return nil }
+            
+            return SummaryItem(
+                title: expense.name,
+                subtitle: expense.description,
+                amount: amount,
+                percentageOfIncome: 0,
+                status: .danger,
+                icon: expense.icon,
+                dueDate: expense.dueDate
+            )
+        }
+
+
+        let totalExpenses = summaries.compactMap { Double($0.amount) }.reduce(0.0, +)
+        
+        let percentageOfIncome = (totalExpenses / Double(incomeInt)) * 100
+        
+        return ExpensesSummaryModel(title: title,
+                                    totalAmount: 12,
+                                    porcentageRalatedToIncome: formatPercentage(percentageOfIncome),
+                                    status: .normal,
+                                    items: summaries)
+    }
+    
+    func formatPercentage(_ value: Double) -> String {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        numberFormatter.minimumFractionDigits = 2
+        numberFormatter.maximumFractionDigits = 2
+        numberFormatter.maximumIntegerDigits = 2
+        
+        if let formattedValue = numberFormatter.string(from: NSNumber(value: value)) {
+            return formattedValue
+        }
+        
+        return "0.00"
+    }
+}
+
+struct ExpensesSummaryModel: Codable, Identifiable {
+    var id: UUID = UUID()
+    var title: String
+    var totalAmount: Double
+    var porcentageRalatedToIncome: String
+    let status: SummaryStatus
+    var items: [SummaryItem]
+}
+
+extension ExpensesSummaryModel {
+    static var loadingStateValues = {
+        ExpensesSummaryModel(title: "Loading",
+                             totalAmount: 0,
+                             porcentageRalatedToIncome: "0",
+                             status: .normal,
+                             items: [])
+    }()
+}
+
+struct SummaryItem: Codable, Identifiable {
+    var id: UUID = UUID()
+    let title: String
+    let subtitle: String?
+    let amount: Double
+    let percentageOfIncome: Double
+    let status: SummaryStatus
+    let icon: String
+    var dueDate: Date
 }
