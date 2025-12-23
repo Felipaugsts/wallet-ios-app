@@ -18,15 +18,19 @@ struct User: Codable {
 
 class UserRepository {
     
+    static var shared = UserRepository()
+    
     private let keychainService = KeychainService()
     private let serviceIdentifier = "com.seuapp.user"
     private let accountIdentifier = "userAccount"
+    
+    var loadedData: OverviewResult?
+    var expenseSummary: [ExpensesSummaryModel] = []
+    
     var isBiometricEnabled: Bool {
         get { UserDefaults.standard.bool(forKey: "isBiometricEnabled") }
         set { UserDefaults.standard.set(newValue, forKey: "isBiometricEnabled") }
     }
-    
-    static var shared = UserRepository()
     
     lazy var user: User? = loadUser()
     

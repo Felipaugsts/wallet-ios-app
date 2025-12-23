@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var selectedButton: String = "dashboard"
+    @State private var disabled: Bool = false
     @StateObject private var viewModel = HomeViewModel()
     
     var body: some View {
@@ -26,7 +27,7 @@ struct HomeView: View {
                         .navigationBarTitleDisplayMode(.large)
                     
                 case "configuration":
-                    SettingsView()
+                    SettingsView(disabled: $disabled)
                         .navigationTitle(TextValue.settingsTitle.localized)
                         .navigationBarTitleDisplayMode(.large)
                     
@@ -36,6 +37,8 @@ struct HomeView: View {
             }
             
             FloatingTabBar(selectedId: $selectedButton, items: viewModel.tabItems)
+                .disabled(disabled)
+                .shimmer(when: $viewModel.isLoading)
         }
         .navigationBarBackButtonHidden()
         .scrollBounceBehavior(.basedOnSize)

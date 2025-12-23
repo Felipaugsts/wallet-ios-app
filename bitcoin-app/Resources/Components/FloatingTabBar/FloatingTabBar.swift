@@ -9,6 +9,15 @@ struct TabItem: Codable, Identifiable {
     let icon: String
     let visible: Bool
 }
+
+extension TabItem {
+    static var loadingStateTabs: [TabItem] {
+        [
+            .init(id: "loadingStateTab1", icon: "loading", visible: true),
+            .init(id: "loadingStateTab2", icon: "loading", visible: true),
+        ]
+    }
+}
 struct FloatingTabBar: View {
     
     @Binding var selectedId: String

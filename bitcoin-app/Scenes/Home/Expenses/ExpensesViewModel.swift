@@ -10,17 +10,18 @@
 import Foundation
 import SwiftUI
 
-class ExpensesViewModel: ObservableObject {
+class ExpensesViewModel: ObservableObject, TransactionDelegate {
     @Published var transactionsType: TransactionType
     @Published var isLoading: Bool
     @Published var showingAddSubscription: Bool
     @Published var datasource: [ExpenseModel] { didSet { filteredDatasource = datasource} }
-    @Published var filteredDatasource: [ExpenseModel] = []
+    @Published var filteredDatasource: [ExpenseModel] = [] { didSet { updateCategories() } }
     @Published var editValue: ExpenseModel?
     @Published var loading: Bool
     @Published var showAlert: Bool
     @Published var selectedItemToDelete: ExpenseModel?
     @Published var selectedCategory: String = "" { didSet { handleFilter() } }
+    @AppStorage(.updatedDahboardKey) var shouldUpdateTransactions: Bool = false
     
     var currentDate: Date?
     
@@ -35,6 +36,7 @@ class ExpensesViewModel: ObservableObject {
         filteredDatasource = datasource.filter { item in
             item.selectedCategoryId == selectedCategory
         }
+        
     }
     
     init(transactionsType: TransactionType,
@@ -55,13 +57,16 @@ class ExpensesViewModel: ObservableObject {
         self.selectedCategory = ""
     }
     
-    lazy var categories: [Category] = {
+    @Published var categories: [Category] = []
+    
+    func updateCategories() {
         let allCategories: [Category] = RemoteConfigManager.shared.model(model: [Category].self, for: .wpCategories) ?? []
-        
-        return allCategories.filter { item in
+        if datasource.isEmpty { self.categories = allCategories; return }
+        self.categories = allCategories.filter { item in
             datasource.contains(where: { $0.selectedCategoryId == item.id })
         }
-    }()
+        
+    }
     
     func handleDeleteAction(item: ExpenseModel) {
         if item.isRecurring {
@@ -107,7 +112,7 @@ class ExpensesViewModel: ObservableObject {
         HomeService().deleteDocument(collection: collectionValue , documentId: id) { result in
             switch result {
             case .success(_):
-                self.delegate?.updateTransactions = true
+                self.shouldUpdateTransactions = true
                 withAnimation {
                     self.datasource.removeAll(where: { $0.id == id })
                 }
@@ -121,12 +126,9 @@ class ExpensesViewModel: ObservableObject {
     func editTransaction(value: ExpenseModel) {
         editValue = value
         showingAddSubscription = true
-        delegate?.updateTransactions = true
+        shouldUpdateTransactions = true
     }
-}
-
-extension ExpensesViewModel: @preconcurrency TransactionDelegate {
-    @MainActor
+    
     func updateTransactions(transaction: ExpenseModel) {
         withAnimation(.spring) {
             if let firstDate = datasource.first?.dueDate, !isSameMonthAndYear(transaction.dueDate, firstDate) {
@@ -143,7 +145,7 @@ extension ExpensesViewModel: @preconcurrency TransactionDelegate {
             handleFilter()
         }
         
-        delegate?.updateTransactions = true
+        shouldUpdateTransactions = true
     }
     
     func removeItem(transaction: ExpenseModel) -> Bool {

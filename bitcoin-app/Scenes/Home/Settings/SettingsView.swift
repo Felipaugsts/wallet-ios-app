@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    
+    @Binding var disabled: Bool
     @StateObject var viewModel = SettingsViewModel()
     @EnvironmentObject var languageManager: LocalizationManager
     
@@ -25,12 +25,11 @@ struct SettingsView: View {
                                 .clipShape(Circle())
                                 .shadow(radius: 10)
                         } placeholder: {
-                            VStack {
-                            }
-                            .background(ColorPalette.light)
-                            .frame(width: 50, height: 50)
-                            .clipShape(Circle())
-                            .shimmer(when: .constant(true))
+                            Circle()
+                                .fill(ColorPalette.light)
+                                .frame(width: 50, height: 50)
+                                .shadow(color: .black.opacity(0.0205), radius: 1)
+                                .shimmer(when: .constant(true))
                         }
                         
                         Text(user.name)
@@ -55,21 +54,28 @@ struct SettingsView: View {
                 
                 fixedSections()
                     .shimmer(when: $viewModel.isLoading)
+//                
+//                VStack {}
+//                    .frame(height: 50)
+//                    .background(Color(uiColor: .systemGroupedBackground))
             }
         }
         .task { viewModel.fetchData() }
         .disabled(!viewModel.screenEnabled)
         .scrollIndicators(.hidden)
+        .background(Color(uiColor: .systemGroupedBackground))
         .navigationDestination(isPresented: $viewModel.didLogOut) {
             LoginScreen()
         }
         .padding(.top, 15)
+        .loadingView(isLoading: viewModel.springLoading)
     }
     
     @ViewBuilder
     func fixedSections() -> some View {
         Section {
             Button(action: {
+                disabled = true
                 viewModel.logout()
             }) {
                 HStack {
@@ -124,6 +130,7 @@ struct ContactView: View {
             .padding()
             .navigationTitle("Entrar em Contato")
         }
+        
     }
 }
 
@@ -162,5 +169,36 @@ struct AboutView: View {
             .scrollBounceBehavior(.basedOnSize)
             .navigationTitle("Sobre o App")
         }
+    }
+}
+
+
+import SwiftUI
+
+// Modificador para mostrar um loading centralizado
+struct LoadingModifier: ViewModifier {
+    var isLoading: Bool
+    var loadingText: String = "Carregando..." // Texto opcional para o loading
+
+    func body(content: Content) -> some View {
+        ZStack {
+            content
+
+            if isLoading {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+
+                ProgressView(loadingText)
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.5, anchor: .center)
+                    .foregroundColor(.white)
+            }
+        }
+    }
+}
+
+extension View {
+    func loadingView(isLoading: Bool, loadingText: String = "") -> some View {
+        self.modifier(LoadingModifier(isLoading: isLoading, loadingText: loadingText))
     }
 }

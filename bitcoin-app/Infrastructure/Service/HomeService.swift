@@ -239,8 +239,9 @@ final class HomeService {
         
         let percentageOfIncome = (totalExpenses / Double(incomeInt)) * 100
         
-        return ExpensesSummaryModel(title: title,
-                                    totalAmount: 12,
+        return ExpensesSummaryModel(filter: filter,
+                                    title: title,
+                                    totalAmount: totalExpenses,
                                     porcentageRalatedToIncome: formatPercentage(percentageOfIncome),
                                     status: .normal,
                                     items: summaries)
@@ -263,6 +264,7 @@ final class HomeService {
 
 struct ExpensesSummaryModel: Codable, Identifiable {
     var id: UUID = UUID()
+    var filter: String
     var title: String
     var totalAmount: Double
     var porcentageRalatedToIncome: String
@@ -272,7 +274,8 @@ struct ExpensesSummaryModel: Codable, Identifiable {
 
 extension ExpensesSummaryModel {
     static var loadingStateValues = {
-        ExpensesSummaryModel(title: "Loading",
+        ExpensesSummaryModel(filter: "",
+                             title: "Loading",
                              totalAmount: 0,
                              porcentageRalatedToIncome: "0",
                              status: .normal,

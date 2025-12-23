@@ -23,7 +23,7 @@ enum SummaryStatus: Codable {
 //
 struct FinancialSummaryCard: View {
     let data: ExpensesSummaryModel
-    let onTapItem: (SummaryItem) -> Void
+    let onTapItem: (String) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -42,7 +42,7 @@ struct FinancialSummaryCard: View {
             Text("Consome ")
                 .font(.caption)
                 .foregroundStyle(.secondary) +
-            Text("\(data.porcentageRalatedToIncome)")
+            Text("\(data.porcentageRalatedToIncome) %")
                 .font(.caption)
                 .fontWeight(.bold)
                 .foregroundColor(data.status.color) +
@@ -54,12 +54,20 @@ struct FinancialSummaryCard: View {
             
             // Items
             ForEach(data.items.prefix(2)) { item in
-                Button {
-                    onTapItem(item)
-                } label: {
+                Button { } label: {
                     HStack {
-                        Image(systemName: item.icon)
-                            .frame(width: 24)
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 35, height: 35)
+                                .shadow(color: .black.opacity(0.0205), radius: 1)
+                            
+                            Image(systemName: item.icon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
+                                .clipShape(Circle())
+                        }
                         
                         VStack(alignment: .leading) {
                             Text(item.title)
@@ -67,8 +75,8 @@ struct FinancialSummaryCard: View {
                                 .foregroundColor(ColorPalette.textColor)
                             
                             Text(Date(), format: .dateTime.month(.wide).day(.twoDigits).year(.defaultDigits))
-                                .font(.caption)
-                                .foregroundColor(ColorPalette.textColor.opacity(0.5))
+                                .font(.caption2)
+                                .foregroundColor(ColorPalette.textColor.opacity(0.8))
                         }
                         
                         Spacer()
@@ -80,17 +88,19 @@ struct FinancialSummaryCard: View {
                 }
             }
             
-            if data.items.count > 2 {
-                Divider()
+            Divider()
+            
+            HStack {
+                Image(systemName: "doc.fill.badge.plus")
+                    .frame(width: 24)
                 
-                HStack {
-                    Image(systemName: "doc.fill.badge.plus")
-                        .frame(width: 24)
-                    
-                    Text("Ver todos")
-                        .font(.caption)
-                        .foregroundColor(ColorPalette.textColor)
-                }
+                Text(data.items.count > 2 ? "Ver todos" : "Adicionar")
+                    .font(.caption)
+                    .foregroundColor(ColorPalette.textColor)
+            }
+            .frame(maxWidth: .infinity, idealHeight: 30)
+            .onTapGesture {
+                onTapItem(data.filter)
             }
         }
         .padding()

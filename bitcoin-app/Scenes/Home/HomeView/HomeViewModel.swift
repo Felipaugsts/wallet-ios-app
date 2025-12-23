@@ -10,7 +10,7 @@ import Foundation
 
 class HomeViewModel: ObservableObject {
     @Published var isLoading = true
-    @Published var tabItems: [TabItem] = []
+    @Published var tabItems: [TabItem] = TabItem.loadingStateTabs
     
     func fetchTabs() {
         let tabs = RemoteConfigManager.shared.model(model: TabBarConfiguration.self, for: .tabConfiguration)

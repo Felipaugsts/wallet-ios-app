@@ -13,7 +13,7 @@ struct DashboardView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 18) {
+            VStack(spacing: 13) {
                 HeaderView(month: viewModel.monthFormatter.string(from: viewModel.currentDate))
                     .shimmer(when: $viewModel.isLoading)
                 
@@ -25,16 +25,24 @@ struct DashboardView: View {
                 
                 summaryCard
                 
-                VStack {}.frame(height: 50)
+                VStack {}
+                    .frame(height: 50)
+                    .background(Color(uiColor: .systemGroupedBackground))
             }
             .padding()
         }
-        .task { viewModel.fetchSummary() }
+        .task {
+            viewModel.filterBy = ""
+            viewModel.fetchSummary()
+        }
         .navigationBarTitleDisplayMode(.large)
         .background(Color(uiColor: .systemGroupedBackground))
         .scrollIndicators(.hidden)
         .environmentObject(viewModel)
-        .navigationDestination(isPresented: $displayDetails) { TransportDetailView() }
+        .navigationDestination(isPresented: $displayDetails) {
+            SubscriptionManagerView(preSelectedTransactionType: .expense)
+                .environmentObject(viewModel)
+        }
     }
     
     // MARK: - Sections (ainda como computed properties para clareza)
@@ -61,13 +69,14 @@ struct DashboardView: View {
             if !viewModel.expenseSummary.isEmpty {
                 VStack(spacing: 16) {
                     ForEach(viewModel.expenseSummary) { data in
-                        FinancialSummaryCard(data: data) { item in
+                        FinancialSummaryCard(data: data) { filter in
                             displayDetails = true
+                            viewModel.filterBy = filter
                         }
                     }
                 }
             } else if viewModel.isLoading {
-                FinancialSummaryCard(data: .loadingStateValues) { _ in }
+                FinancialSummaryCard(data: .loadingStateValues, onTapItem: { _ in })
                 .shimmer(when: $viewModel.isLoading)
             } else {
                 Text("Nenhum resumo disponível.")

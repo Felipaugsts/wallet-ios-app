@@ -11,14 +11,17 @@ import FirebaseAuth
 struct SplashScreen: View {
     @State private var displayLogin = false
     @State private var displayHome = false
-    private var authListener: AuthStateDidChangeListenerHandle?
     @State private var isVisible = false
-    @AppStorage(.onboardingKey) private var isOnboardingCompleted: Bool = false
     @State private var buttonOffset: CGFloat = 100
     @State private var isButtonVisible = false
     @State private var isSplashVisible = true
-    var isBiometryEnabled = UserRepository.shared.isBiometricEnabled
     @StateObject private var viewModel = LoginViewModel()
+    
+    var isBiometryEnabled = UserRepository.shared.isBiometricEnabled
+    private var authListener: AuthStateDidChangeListenerHandle?
+    
+    @AppStorage(.onboardingKey) internal var isOnboardingCompleted: Bool = false
+    @AppStorage(.updatedDahboardKey) internal var updateTransactions: Bool = true
     
     var body: some View {
         NavigationStack {
@@ -38,7 +41,6 @@ struct SplashScreen: View {
                             .fontWeight(.bold)
                             .padding(.top, 10)
                     }
-                    
                     
                     Text("Welcome")
                 }
@@ -91,6 +93,8 @@ struct SplashScreen: View {
             .navigationDestination(isPresented: $displayLogin) { LoginScreen() }
             .onChange(of: viewModel.displayHome, { displayHome = true })
             .onAppear {
+                updateTransactions = true
+                
                 if isOnboardingCompleted {
                     isSplashVisible = true
                 }
@@ -128,13 +132,17 @@ struct SplashScreen: View {
         }
     }
     
-    private func displayLoginWithAnimation() {
+    private func displayWithAnimation(login: Bool = false) {
         withAnimation(.easeOut(duration: 0.3)) {
             isVisible = false
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            self.displayLogin = true
+            if login {
+                self.displayLogin = true
+            } else {
+                self.displayHome = true
+            }
         }
     }
     
@@ -146,13 +154,13 @@ struct SplashScreen: View {
                 
                 if UserRepository.shared.saveUser(userModel) {
                     if !UserRepository.shared.isBiometricEnabled {
-                        displayLoginWithAnimation()
+                        displayWithAnimation()
                     } else {
                         displayLoggedInAnimation()
                     }
                 }
             } else {
-                displayLoginWithAnimation()
+                displayWithAnimation(login: true)
             }
         }
     }

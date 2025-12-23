@@ -64,6 +64,7 @@ struct SubscriptionManagerView: View {
             dashboardViewModel.overView?.incomeTransactions ?? []
             viewModel.currentDate = dashboardViewModel.currentDate
             viewModel.delegate = dashboardViewModel
+            viewModel.selectedCategory = dashboardViewModel.filterBy
         }
     }
 }
@@ -156,7 +157,7 @@ struct SubscriptionList: View {
             
             ForEach(viewModel.filteredDatasource) { item in
                 Menu {
-                    Button(TextValue.cloneNextMonth.localized) { }
+//                    Button(TextValue.cloneNextMonth.localized) { }
                     
                     Button(action: {
                         viewModel.editTransaction(value: item)
@@ -205,8 +206,9 @@ struct SubscriptionRow: View {
         HStack(spacing: 16) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(ColorPalette.textColor)
+                    .fill(.white)
                     .frame(width: 48, height: 48)
+                    .shadow(color: .black.opacity(0.0205), radius: 1)
                 
                 Image(systemName: subscription.icon)
                     .font(.title2)

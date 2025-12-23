@@ -13,6 +13,7 @@ class SettingsViewModel: ObservableObject {
     @Published var values: [String: Bool] = [:]
     @Published var pickerValues: [String: Int] = [:]
     @Published var isLoading: Bool = true
+    @Published var springLoading: Bool = false
     @Published var sections: [SectionModel] = SettingsResponse.mock().sections
     @Published var didLogOut: Bool = false
     @Published var screenEnabled: Bool = true
@@ -26,9 +27,8 @@ class SettingsViewModel: ObservableObject {
             set: { newValue in
                 self.values[id] = newValue
                 
-                print("O toggle '\(id)' foi atualizado para \(newValue)")
-                
                 if id == "theme" {
+                    self.springLoading = true
                     self.changeTheme(toDarkMode: newValue)
                 }
                 
@@ -46,9 +46,9 @@ class SettingsViewModel: ObservableObject {
             },
             set: { newValue in
                 self.pickerValues[title] = newValue
-                print("O picker '\(title)' foi atualizado para \(newValue)")
                 
                 if title == "language" {
+                    self.springLoading = true
                     self.changeLanguage(to: newValue)
                 }
             }
@@ -66,6 +66,7 @@ class SettingsViewModel: ObservableObject {
     
     func changeTheme(toDarkMode: Bool) {
         ThemeManager.shared.updateTheme(toDarkMode ? .dark : .light)
+        dismissSpringLoading()
     }
     
     func changeLanguage(to index: Int) {
@@ -78,6 +79,13 @@ class SettingsViewModel: ObservableObject {
         }
         
         LocalizationManager.shared.saveLanguage(newLanguage)
+        dismissSpringLoading()
+    }
+    
+    func dismissSpringLoading(after time: Double = 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + time) {
+            self.springLoading = false
+        }
     }
     
     func fetchData() {
@@ -88,6 +96,7 @@ class SettingsViewModel: ObservableObject {
     }
     
     func logout() {
+        springLoading = true
         UserRepository.shared.logout()
     }
     

@@ -22,10 +22,13 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
     @Published var isLoading: Bool = true
     @Published var disableNextMonthButton: Bool = false
     @Published var expenseSummary: [ExpensesSummaryModel] = []
+
+    @AppStorage(.updatedDahboardKey) internal var updateTransactions: Bool = true
+
+    var filterBy: String = ""
     
-    var updateTransactions: Bool = true
+    let userRepository = UserRepository.shared
     
-    let user = UserRepository.shared.user
     let homeService = HomeService()
     // MARK: - Computed Properties
     var previousMonthData: FinancialData {
@@ -59,6 +62,7 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
             return month
         }()
         isLoading = true
+        updateTransactions = true
         
         DispatchQueue.main.async {
             self.disableNextMonthButton = false
@@ -123,6 +127,9 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
                     expenseSummary.append(fixedExpensesOverView)
                     expenseSummary.append(creditCardOverView)
                     overView = transactions
+                    
+                    userRepository.expenseSummary = expenseSummary
+                    userRepository.loadedData = overView
                 } catch {
                     print("Error fetching summary: \(error.localizedDescription)")
                 }
@@ -131,6 +138,10 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
             }
             
             updateTransactions = false
+        } else {
+            expenseSummary = userRepository.expenseSummary
+            overView = userRepository.loadedData
+            isLoading = false
         }
     }
 }
@@ -149,4 +160,24 @@ extension Date {
     func getYearAsInt() -> Int {
         Calendar.current.component(.year, from: self)
     }
+}
+
+public extension AppStorage<Bool> {
+ 
+    static let updatedDahboardKey = Self(
+        wrappedValue: false,
+        .updatedDahboardKey,
+        store: .standard
+    )
+    
+    static let updatedSummaryKey = Self(
+        wrappedValue: false,
+        .loadedSummaryKey,
+        store: .standard
+    )
+}
+
+public extension String {
+    static let updatedDahboardKey = "shouldUpdateData"
+    static let loadedSummaryKey = "loadedSummaryData"
 }
