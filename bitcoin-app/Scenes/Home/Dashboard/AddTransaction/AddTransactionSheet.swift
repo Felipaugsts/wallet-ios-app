@@ -10,8 +10,6 @@ import SwiftUI
 struct AddTransactionSheet: View {
     var editTransaction: ExpenseModel?
     var preSelectedValueType: TransactionType
-    var preSelectedCategoryId: String
-    weak var delegate: TransactionDelegate?
     @EnvironmentObject var dashboardViewModel: DashboardViewModel
     
     @StateObject private var viewModel: AddTransactionViewModel
@@ -19,14 +17,14 @@ struct AddTransactionSheet: View {
     
     init(editTransaction: ExpenseModel?,
          preSelectedValueType: TransactionType,
-         preSelectedCategoryId: String,
          delegate: TransactionDelegate?) {
         self.editTransaction = editTransaction
         self.preSelectedValueType = preSelectedValueType
-        self.preSelectedCategoryId = preSelectedCategoryId
-        self.delegate = delegate
         
-        _viewModel = StateObject(wrappedValue: AddTransactionViewModel(transactionType: preSelectedValueType))
+        _viewModel = StateObject(wrappedValue: AddTransactionViewModel(
+            transactionType: preSelectedValueType,
+            delegate: delegate
+        ))
     }
     
     private static let currencyFormatter: NumberFormatter = {
@@ -80,7 +78,7 @@ struct AddTransactionSheet: View {
                     )
                 }
                 
-                if viewModel.isRecurringEnabled && (viewModel.transaction.recurringEditable ?? true) && !viewModel.isRecurring {
+                if editTransaction == nil || !viewModel.isRecurring {
                     Section(header: Text("Opções Adicionais")) {
                         Toggle("É uma transação recorrente?", isOn: $viewModel.isRecurring.animation())
                     }
@@ -109,7 +107,6 @@ struct AddTransactionSheet: View {
                 viewModel.currentSelectedDate = dashboardViewModel.currentDate
             }
             .onChange(of: viewModel.shouldUpdateTransactions) { _, _ in
-                delegate?.updateTransactions(transaction: viewModel.transaction)
                 self.dismiss()
             }
         }

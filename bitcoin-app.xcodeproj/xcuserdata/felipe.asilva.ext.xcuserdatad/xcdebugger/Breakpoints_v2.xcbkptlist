@@ -52,5 +52,145 @@
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "EBE81B6A-7D6A-4123-903A-0F2F82BF418A"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "bitcoin-app/Infrastructure/Service/HomeService.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "101"
+            endingLineNumber = "101"
+            landmarkName = "fetchRecuringTransactions()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "EBE81B6A-7D6A-4123-903A-0F2F82BF418A - b4cf87ef4865c680"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for bitcoin_app.HomeService.fetchRecuringTransactions() async throws -&gt; bitcoin_app.Transactions"
+                  moduleName = "bitcoin-app.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/felipe.asilva.ext/Desktop/pocs/wallet-ios-app/bitcoin-app/Infrastructure/Service/HomeService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "101"
+                  endingLineNumber = "101">
+               </Location>
+               <Location
+                  uuid = "EBE81B6A-7D6A-4123-903A-0F2F82BF418A - b4cf87ef4865c680"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for bitcoin_app.HomeService.fetchRecuringTransactions() async throws -&gt; bitcoin_app.Transactions"
+                  moduleName = "bitcoin-app.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/felipe.asilva.ext/Desktop/pocs/wallet-ios-app/bitcoin-app/Infrastructure/Service/HomeService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "101"
+                  endingLineNumber = "101">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "056D82C9-9AC2-495A-92F0-5460CC88C84F"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "bitcoin-app/Utils/Extensions/Dictionary+Extension.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "24"
+            endingLineNumber = "24"
+            landmarkName = "createExpenseModel(documentId:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "28CFA7AB-2757-489A-B67B-39F837479B9B"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "bitcoin-app/Scenes/Home/Dashboard/AddTransaction/AddTransactionViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "108"
+            endingLineNumber = "108"
+            landmarkName = "saveTransaction()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9D267449-1A76-457C-A9DD-C04452C01D80"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "bitcoin-app/Scenes/Home/Expenses/ExpensesViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "119"
+            endingLineNumber = "119"
+            landmarkName = "deleteTransaction(id:collection:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "9D267449-1A76-457C-A9DD-C04452C01D80 - 3fd46b77b5911f2e"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "bitcoin_app.ExpensesViewModel.deleteTransaction(id: Swift.String, collection: Swift.Optional&lt;Swift.String&gt;) -&gt; ()"
+                  moduleName = "bitcoin-app.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/felipe.asilva.ext/Desktop/pocs/wallet-ios-app/bitcoin-app/Scenes/Home/Expenses/ExpensesViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "119"
+                  endingLineNumber = "119">
+               </Location>
+               <Location
+                  uuid = "9D267449-1A76-457C-A9DD-C04452C01D80 - bd33f4b0ad24e13c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Swift.Result&lt;(), Swift.Error&gt;) -&gt; () in bitcoin_app.ExpensesViewModel.deleteTransaction(id: Swift.String, collection: Swift.Optional&lt;Swift.String&gt;) -&gt; ()"
+                  moduleName = "bitcoin-app.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/felipe.asilva.ext/Desktop/pocs/wallet-ios-app/bitcoin-app/Scenes/Home/Expenses/ExpensesViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "119"
+                  endingLineNumber = "119">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "68A26AA2-8AC1-4684-BDFC-86D21EFA8427"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "bitcoin-app/Scenes/Home/Dashboard/AddTransaction/AddTransactionViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "124"
+            endingLineNumber = "124"
+            landmarkName = "saveTransaction()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

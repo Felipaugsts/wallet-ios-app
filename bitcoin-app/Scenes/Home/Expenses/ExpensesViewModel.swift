@@ -21,7 +21,6 @@ class ExpensesViewModel: ObservableObject, TransactionDelegate {
     @Published var showAlert: Bool
     @Published var selectedItemToDelete: ExpenseModel?
     @Published var selectedCategory: String = "" { didSet { handleFilter() } }
-    @AppStorage(.updatedDahboardKey) var shouldUpdateTransactions: Bool = false
     
     var currentDate: Date?
     
@@ -36,7 +35,6 @@ class ExpensesViewModel: ObservableObject, TransactionDelegate {
         filteredDatasource = datasource.filter { item in
             item.selectedCategoryId == selectedCategory
         }
-        
     }
     
     init(transactionsType: TransactionType,
@@ -78,21 +76,30 @@ class ExpensesViewModel: ObservableObject, TransactionDelegate {
         deleteTransaction(id: item.id)
     }
     
+    func excludeFromNowOn(id: String) {
+        guard let currentDate else { return }
+        if var transaction: ExpenseModel = datasource.first(where: { $0.id == id }) {
+            transaction.recurring.addExcludedFutureDatesFromDate(currentDate)
+            
+            HomeService().updateDocument(collection: .recurring, documentId: id, updates: transaction) { _ in
+                
+            }
+        }
+    }
     func excludeFromCurrentMonth(id: String) {
         guard let currentDate else { return }
         if var transaction: ExpenseModel = datasource.first(where: { $0.id == id }) {
             
-            if var dates = transaction.excludedMonths {
+            if var dates = transaction.recurring.excludedMonths {
                 dates.append(currentDate)
                 transaction.excludedMonths = dates
             } else {
-                transaction.excludedMonths = [currentDate]
+                transaction.recurring.excludedMonths = [currentDate]
             }
-            
-            let payload = transaction.toDict()
+
             HomeService().updateDocument(collection: .recurring,
                                          documentId: transaction.transactionID,
-                                         updates: payload) { _ in
+                                         updates: transaction) { _ in
                 withAnimation {
                     self.datasource.removeAll(where: { $0.id == id })
                 }
@@ -112,7 +119,7 @@ class ExpensesViewModel: ObservableObject, TransactionDelegate {
         HomeService().deleteDocument(collection: collectionValue , documentId: id) { result in
             switch result {
             case .success(_):
-                self.shouldUpdateTransactions = true
+                self.delegate?.updateTransactions = true
                 withAnimation {
                     self.datasource.removeAll(where: { $0.id == id })
                 }
@@ -126,34 +133,44 @@ class ExpensesViewModel: ObservableObject, TransactionDelegate {
     func editTransaction(value: ExpenseModel) {
         editValue = value
         showingAddSubscription = true
-        shouldUpdateTransactions = true
+        delegate?.updateTransactions = true
     }
     
     func updateTransactions(transaction: ExpenseModel) {
         withAnimation(.spring) {
-            if let firstDate = datasource.first?.dueDate, !isSameMonthAndYear(transaction.dueDate, firstDate) {
-                _ = removeItem(transaction: transaction)
-                return
-            }
-            
-            if !transaction.transactionID.isEmpty, let index = datasource.firstIndex(where: { $0.transactionID == transaction.transactionID }) {
+            if let index = datasource.firstIndex(where: { $0.transactionID == transaction.transactionID }) {
                 datasource[index] = transaction
-            } else {
-                datasource.append(transaction)
             }
             
+            delegate?.updateTransactions = true
             handleFilter()
         }
-        
-        shouldUpdateTransactions = true
+    }
+    
+    func deleteTransactions(transaction: ExpenseModel) {
+        withAnimation(.spring) {
+            datasource.removeAll(where: { $0.id == transaction.id })
+            delegate?.updateTransactions = true
+            handleFilter()
+        }
+    }
+    
+    func addTransactions(transaction: ExpenseModel) {
+        withAnimation(.spring) {
+            datasource.append(transaction)
+            delegate?.updateTransactions = true
+            handleFilter()
+        }
     }
     
     func removeItem(transaction: ExpenseModel) -> Bool {
-        if let index = datasource.firstIndex(where: { $0.id == transaction.id }) {
-            datasource.remove(at: index)
-            return true
+        withAnimation(.spring) {
+            if let index = datasource.firstIndex(where: { $0.id == transaction.id }) {
+                datasource.remove(at: index)
+                return true
+            }
+            return false
         }
-        return false
     }
     
     private func isSameMonthAndYear(_ date1: Date, _ date2: Date) -> Bool {

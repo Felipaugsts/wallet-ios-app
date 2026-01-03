@@ -54,7 +54,9 @@ struct FinancialSummaryCard: View {
             
             // Items
             ForEach(data.items.prefix(2)) { item in
-                Button { } label: {
+                Button {
+                    onTapItem(data.filter)
+                } label: {
                     HStack {
                         ZStack {
                             Circle()

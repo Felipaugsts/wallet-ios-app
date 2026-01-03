@@ -51,17 +51,6 @@ struct MainSummaryCard: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(Color.white)
-            
-//            HStack {
-//                Image(systemName: isPositive ? "arrow.up.right" : "arrow.down.right")
-//                    .foregroundColor(Color.white)
-//                
-//                Text(String(describing: overview?.balanceChangePercent ?? 0)).fontWeight(.medium)
-//                    .foregroundColor(Color.white)
-//                
-//                Text(TextValue.vsPreviousMonth.localized).font(.caption)
-//                    .foregroundColor(Color.white.opacity(0.7))
-//            }
         }.padding(25).frame(
             maxWidth: .infinity,
             alignment: .leading).background(

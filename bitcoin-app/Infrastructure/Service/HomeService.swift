@@ -14,11 +14,7 @@ final class HomeService {
     // MARK: - Properties
     
     let userId = UserRepository.shared.loadUser()?.id ?? ""
-    var expensesTransactions: [ExpenseModel] = [] {
-        didSet {
-            print("expensesTransactions123", expensesTransactions)
-        }
-    }
+    var expensesTransactions: [ExpenseModel] = []
     var incomeTransactions: [ExpenseModel] = []
     var recuringTransactions: [ExpenseModel] = []
     var date: Date = Date()
@@ -32,6 +28,7 @@ final class HomeService {
     // MARK: - User Overview
     
     func getUserOverview(month: Int, year: Int) async throws -> OverviewResult {
+        resetValues()
         guard let date = getDateFrom(month: month, year: year) else { throw NSError(domain: "InvalidDateError", code: 0, userInfo: nil) }
         self.date = date
         
@@ -60,11 +57,11 @@ final class HomeService {
     // MARK: - Create Expense
     
     func createTransaction(
-        data: [String: Any],
+        data: ExpenseModel,
         collection: Collections,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
-        var payload = data
+        var payload = data.toDict()
         payload["created_at"] = Timestamp(date: Date())
         payload["updated_at"] = Timestamp(date: Date())
         payload["user_id"] = userId
@@ -72,14 +69,15 @@ final class HomeService {
         service.create(collection: collection, payload: payload, completion: completion)
     }
     
-    func createTransactionWithDocumentId(collection: Collections, id: String, data: [String: Any]) {
-        var payload = data
+    func createTransactionWithDocumentId(collection: Collections, id: String, data: ExpenseModel) {
+        var payload = data.toDict()
         
         payload["created_at"] = Timestamp(date: Date())
         payload["updated_at"] = Timestamp(date: Date())
         payload["user_id"] = userId
         
         service.create(withDocumentId: id, collection: collection, payload: payload) { _ in }
+        
     }
     
     // MARK: - Fetch
@@ -108,8 +106,8 @@ final class HomeService {
     
     // MARK: - Update
     
-    func updateDocument(collection: Collections, documentId: String, updates: [String: Any], completion: @escaping (Result<Void, Error>) -> Void) {
-        var payload = updates
+    func updateDocument(collection: Collections, documentId: String, updates: ExpenseModel, completion: @escaping (Result<Void, Error>) -> Void) {
+        var payload = updates.toDict()
         payload["updated_at"] = Timestamp(date: Date())
         
         service.updateDocument(collection: collection, documentId: documentId, updates: payload, completion: completion)
@@ -124,7 +122,7 @@ final class HomeService {
     // MARK: - Private Methods
     
     func getDateFrom(month: Int, year: Int) -> Date? {
-        let dateComponents = DateComponents(year: year, month: month, day: 30)
+        let dateComponents = DateComponents(year: year, month: month, day: 1)
         guard let date = Calendar.current.date(from: dateComponents) else {
             return nil
         }
@@ -138,16 +136,39 @@ final class HomeService {
         let transaction = try await fetchRecuringTransactions()
         
         let newExpenses = transaction.expensesTransactions.filter { newExpense in
-            newExpense.recurringEditable ?? true && newExpense.dueDate < date && !expensesTransactions.contains(where: { $0.id == newExpense.id })
+            newExpense.recurringEditable ?? true &&
+            date.isGreaterThanMonthAndYear(as: newExpense.dueDate) &&
+            wasNotExcludedFromCurrentDate(date: newExpense.recurring.excludedFutureDatesFromDate) &&
+            !wasNotExcludedForThisDate(model: newExpense, date: date)
         }
         
         let newIncome = transaction.incomeTransactions.filter { newIncome in
-            newIncome.recurringEditable ?? true && newIncome.dueDate < date && !incomeTransactions.contains(where: { $0.id == newIncome.id })
+            newIncome.recurringEditable ?? true &&
+            date.isGreaterThanMonthAndYear(as: newIncome.dueDate) &&
+            wasNotExcludedFromCurrentDate(date: newIncome.recurring.excludedFutureDatesFromDate)
         }
         
-        expensesTransactions.append(contentsOf: newExpenses)
-        incomeTransactions.append(contentsOf: newIncome)
+        if !newExpenses.isEmpty {
+            expensesTransactions.append(contentsOf: newExpenses)
+        }
+        
+        if !newIncome.isEmpty {
+            incomeTransactions.append(contentsOf: newIncome)
+        }
+        
         recuringTransactions = transaction.expensesTransactions + transaction.incomeTransactions
+    }
+    
+    func wasNotExcludedForThisDate(model: ExpenseModel, date: Date) -> Bool {
+        return (model.recurring.excludedMonths?.contains { excludedDate in
+            excludedDate.isSameMonthAndYear(as: date)
+        } ?? false)
+    }
+    
+    func wasNotExcludedFromCurrentDate(date: Date?) -> Bool {
+        guard let date else { return true }
+        
+        return date.isGreaterThanMonthAndYear(as: self.date)
     }
     
     func getTotal(collection: Collections, month: Int, year: Int, currentTransactions: inout [ExpenseModel]) async throws -> Double {
@@ -191,14 +212,17 @@ final class HomeService {
         transactions.forEach { expense in
             
             if let existingExpenseIndex = currentList.firstIndex(where: { $0.transactionID == expense.transactionID }) {
-                
-                if expense.recurringEditable == true {
-                    self.createTransactionWithDocumentId(collection: .expenses, id: expense.transactionID, data: expense.toDict(recurringEditable: false))
-                } else {
-                    currentList.remove(at: existingExpenseIndex) // remove currency
-                    currentList.append(expense) // and add value edited for this month
-                }
+                currentList.remove(at: existingExpenseIndex) // remove currency
+                currentList.append(expense)
             } else {
+                if expense.isRecurring {
+                    createTransactionWithDocumentId(
+                        collection: .expenses,
+                        id: expense.transactionID,
+                        data: expense
+                    )
+                }
+                
                 currentList.append(expense)
             }
         }
@@ -259,6 +283,12 @@ final class HomeService {
         }
         
         return "0.00"
+    }
+    
+    private func resetValues() {
+        incomeTransactions = []
+        recuringTransactions = []
+        expensesTransactions = []
     }
 }
 

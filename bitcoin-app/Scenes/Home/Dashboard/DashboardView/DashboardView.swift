@@ -30,6 +30,7 @@ struct DashboardView: View {
                     .background(Color(uiColor: .systemGroupedBackground))
             }
             .padding()
+            .loadingView(isLoading: viewModel.springLoading)
         }
         .task {
             viewModel.filterBy = ""
@@ -69,9 +70,11 @@ struct DashboardView: View {
             if !viewModel.expenseSummary.isEmpty {
                 VStack(spacing: 16) {
                     ForEach(viewModel.expenseSummary) { data in
-                        FinancialSummaryCard(data: data) { filter in
-                            displayDetails = true
-                            viewModel.filterBy = filter
+                        if !data.items.isEmpty || (data.filter == "fixed") {
+                            FinancialSummaryCard(data: data) { filter in
+                                displayDetails = true
+                                viewModel.filterBy = filter
+                            }
                         }
                     }
                 }

@@ -54,10 +54,12 @@ struct SettingsView: View {
                 
                 fixedSections()
                     .shimmer(when: $viewModel.isLoading)
-//                
-//                VStack {}
-//                    .frame(height: 50)
-//                    .background(Color(uiColor: .systemGroupedBackground))
+
+                Section {
+                        HStack {}
+                        .frame(height: 50)
+                        .background(Color(uiColor: .systemGroupedBackground))
+                }
             }
         }
         .task { viewModel.fetchData() }

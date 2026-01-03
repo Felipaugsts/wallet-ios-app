@@ -53,7 +53,6 @@ struct SubscriptionManagerView: View {
         } content: {
             AddTransactionSheet(editTransaction: viewModel.editValue,
                                 preSelectedValueType: viewModel.transactionsType,
-                                preSelectedCategoryId: "",
                                 delegate: viewModel)
             .environmentObject(dashboardViewModel)
         }
@@ -157,7 +156,6 @@ struct SubscriptionList: View {
             
             ForEach(viewModel.filteredDatasource) { item in
                 Menu {
-//                    Button(TextValue.cloneNextMonth.localized) { }
                     
                     Button(action: {
                         viewModel.editTransaction(value: item)
@@ -179,21 +177,32 @@ struct SubscriptionList: View {
         }
         .padding(.horizontal)
         .alert(TextValue.confirmDeleteTitle.localized, isPresented: $viewModel.showAlert) {
-            Button(TextValue.confirmDeleteYes.localized) {
+                
+            Button {
+                if let itemToDelete = viewModel.selectedItemToDelete {
+                    viewModel.excludeFromNowOn(id: itemToDelete.id)
+                }
+            } label: {
+                Label("Excluir recorrencias futuras", systemImage: "trash")
+            }
+            
+            Button("Excluir recorrencia") {
                 if let itemToDelete = viewModel.selectedItemToDelete {
                     viewModel.deleteTransaction(id: itemToDelete.id, collection: itemToDelete.isRecurring ? "recurring" : nil)
                 }
             }
             
-            Button("Deletar apenas deste mês") {
+            Button {
                 if let itemToDelete = viewModel.selectedItemToDelete {
                     viewModel.excludeFromCurrentMonth(id: itemToDelete.id)
                 }
+            } label: {
+                Label("Excluir este mes apenas", systemImage: "trash")
             }
             
             Divider()
             
-            Button(TextValue.confirmDeleteCancel.localized, role: .cancel) { }
+            Button("Cancelar", role: .cancel) { }
         }
     }
 }
@@ -285,12 +294,7 @@ struct TransportExpense: Identifiable {
 struct TransportDetailView: View {
     
     // MARK: Mock Data
-    private let expenses: [TransportExpense] = [
-        .init(title: "Uber", date: "23 de dezembro, 2025", amount: 45, variation: 15, icon: "car.fill"),
-        .init(title: "Gasolina", date: "18 de dezembro, 2025", amount: 150, variation: 5, icon: "fuelpump.fill"),
-        .init(title: "Estacionamento", date: "12 de dezembro, 2025", amount: 20, variation: 2, icon: "parkingsign.circle.fill"),
-        .init(title: "Ônibus", date: "4 de dezembro, 2025", amount: 25, variation: 2, icon: "bus.fill")
-    ]
+    private let expenses: [TransportExpense] = []
     
     private let total: Double = 320
     private let income: Double = 8000

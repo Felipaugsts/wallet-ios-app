@@ -20,9 +20,10 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
     @Published var preSelectedTransactionType: TransactionType = .income
     @Published var overView: OverviewResult?
     @Published var isLoading: Bool = true
+    @Published var springLoading: Bool = false
     @Published var disableNextMonthButton: Bool = false
     @Published var expenseSummary: [ExpensesSummaryModel] = []
-
+    
     @AppStorage(.updatedDahboardKey) internal var updateTransactions: Bool = true
 
     var filterBy: String = ""
@@ -52,8 +53,10 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
     // MARK: - Public Methods (Actions)
     
     func navigateMonth(by value: Int) {
+        springLoading = true
         guard let newDate = Calendar.current.date(byAdding: .month, value: value, to: currentDate) else { return }
         let month = getMonthAsInt(from: newDate)
+        currentDate = newDate
         
         let currentMonth: Int = {
             let month = getMonthAsInt(from: Date())
@@ -61,13 +64,10 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
             
             return month
         }()
-        isLoading = true
         updateTransactions = true
         
         DispatchQueue.main.async {
             self.disableNextMonthButton = false
-            self.currentDate = newDate
-            self.disableNextMonthButton = (month + 1 == currentMonth + 1)
             self.fetchSummary()
         }
     }
@@ -107,7 +107,6 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
     func fetchSummary() {
         if updateTransactions {
             expenseSummary = []
-            isLoading = true
             let year = getYearAsInt(from: currentDate)
             let month = getMonthAsInt(from: currentDate)
             
@@ -124,8 +123,10 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
                                                                                        income: transactions.incomeTotal,
                                                                                        data: transactions.expensesTransactions)
                     
-                    expenseSummary.append(fixedExpensesOverView)
-                    expenseSummary.append(creditCardOverView)
+                    withAnimation {
+                        expenseSummary.append(fixedExpensesOverView)
+                        expenseSummary.append(creditCardOverView)
+                    }
                     overView = transactions
                     
                     userRepository.expenseSummary = expenseSummary
@@ -135,6 +136,7 @@ class DashboardViewModel: ObservableObject, Observable, DashboardDelegate {
                 }
                 
                 isLoading = false
+                springLoading = false
             }
             
             updateTransactions = false
